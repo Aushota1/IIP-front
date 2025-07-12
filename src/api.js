@@ -40,3 +40,22 @@ export const loginUser = async (credentials) => {
 export const testApi = async () => {
   return await api.get('/test');
 };
+
+export const fetchUserProfile = async () => {
+  const token = localStorage.getItem('token');
+  const response = await api.get(`/auth/profile?token=${token}`);
+  return response.data;
+};
+
+// Новая функция для обновления прогресса пользователя
+export const updateCourseProgress = async (token, courseSlug, completedLessons) => {
+  try {
+    const response = await api.post(`/auth/progress?token=${token}`, {
+      course_slug: courseSlug,
+      completed_lessons: completedLessons,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

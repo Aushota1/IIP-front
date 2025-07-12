@@ -1,120 +1,94 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { courses } from './courses'; // Импортируем ваши курсы
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { fetchUserProfile, updateCourseProgress } from '../api';
+import { courses } from './courses'; // Локальный справочник курсов
 import './UserProfile.css';
 
 const UserProfile = () => {
-  // Mock-данные пользователя с расширенной структурой
-  const [userData, setUserData] = useState({
-    name: "Иван Иванов",
-    email: "ivan@example.com",
-    joinDate: "15.03.2023",
-    lastVisit: "05.06.2024 14:30",
-    stats: {
-      totalTime: "127 часов",
-      streak: 18,
-      completedTasks: 156
-    },
-    enrolledCourses: [
-      { 
-        slug: 'blender-cad', 
-        progress: 45,
-        completedLessons: [0], // Индексы завершенных уроков
-        lastActivity: "2024-06-05"
-      },
-      { 
-        slug: 'algorithm-rush', 
-        progress: 15,
-        completedLessons: [],
-        lastActivity: "2024-06-03"
-      }
-    ],
-    activity: {
-      '2024-06-05': { 
-        count: 3, 
-        details: [
-          'Просмотр урока: "Знакомство с интерфейсом Blender"',
-          'Форум: задан вопрос по моделированию'
-        ] 
-      },
-      '2024-06-03': { 
-        count: 2, 
-        details: [
-          'Начат курс "Algorithm Rush"',
-          'Пройден тест введения'
-        ] 
-      }
-    }
-  });
-
+  const [userData, setUserData] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
 
-  // Получаем данные выбранного курса
-  const selectedCourse = selectedCourseSlug 
-    ? courses[selectedCourseSlug] 
-    : null;
+  useEffect(() => {
+    fetchUserProfile()
+      .then(data => {
+        setUserData(data);
+        if (data.enrolledCourses && data.enrolledCourses.length > 0) {
+          setSelectedCourseSlug(data.enrolledCourses[0].slug);
+        }
+      })
+      .catch(error => {
+        console.error("Ошибка загрузки профиля:", error);
+      });
+  }, []);
 
-  // Получаем прогресс пользователя по курсу
+  if (!userData) return <div>Загрузка профиля...</div>;
+
+  const token = localStorage.getItem('token');
+  const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
+
   const getUserCourseProgress = (slug) => {
+    if (!userData.enrolledCourses) return {};
     return userData.enrolledCourses.find(c => c.slug === slug) || {};
   };
 
-  // Форматирование даты
   const formatDate = (dateStr) => {
+    if (!dateStr) return '';
     const options = { day: 'numeric', month: 'long' };
     return new Date(dateStr).toLocaleDateString('ru-RU', options);
   };
 
-  // Отметить урок как завершенный/незавершенный
-  const toggleLessonCompletion = (courseSlug, lessonIndex) => {
+  const toggleLessonCompletion = async (courseSlug, lessonIndex) => {
+    if (!userData) return;
+
+    const courseProgress = userData.enrolledCourses.find(c => c.slug === courseSlug);
+    const completedLessonsRaw = courseProgress?.completedLessons;
+    const completedLessons = Array.isArray(completedLessonsRaw)
+      ? completedLessonsRaw
+      : (typeof completedLessonsRaw === 'number' ? [completedLessonsRaw] : []);
+
+    const isCompleted = completedLessons.includes(lessonIndex);
+
+    // Формируем новый массив завершённых уроков
+    const updatedCompleted = isCompleted
+      ? completedLessons.filter(i => i !== lessonIndex)
+      : [...completedLessons, lessonIndex];
+
+    const totalLessons = courses[courseSlug]?.program?.length || 1;
+    const newProgress = Math.round((updatedCompleted.length / totalLessons) * 100);
+
+    console.log(`Курс: ${courseSlug}`);
+    console.log(`Обновлённый список завершённых уроков:`, updatedCompleted);
+    console.log(`Рассчитанный прогресс: ${newProgress}%`);
+
+    // Обновляем состояние с новыми данными
     setUserData(prev => {
+      if (!prev || !prev.enrolledCourses) return prev;
+
       const updatedCourses = prev.enrolledCourses.map(course => {
         if (course.slug === courseSlug) {
-          const updatedCompleted = course.completedLessons.includes(lessonIndex)
-            ? course.completedLessons.filter(i => i !== lessonIndex)
-            : [...course.completedLessons, lessonIndex];
-          
-          // Пересчитываем прогресс
-          const newProgress = Math.round(
-            (updatedCompleted.length / courses[courseSlug].program.length) * 100
-          );
-
           return {
             ...course,
             completedLessons: updatedCompleted,
             progress: newProgress,
-            lastActivity: new Date().toISOString().split('T')[0]
+            lastActivity: new Date().toISOString().split('T')[0],
           };
         }
         return course;
       });
 
-      // Обновляем активность
-      const today = new Date().toISOString().split('T')[0];
-      const activityEntry = prev.activity[today] || { count: 0, details: [] };
-      
-      const lessonTitle = courses[courseSlug].program[lessonIndex].title;
-      const action = prev.enrolledCourses
-        .find(c => c.slug === courseSlug).completedLessons.includes(lessonIndex)
-          ? 'Отменено завершение урока'
-          : 'Завершен урок';
-
       return {
         ...prev,
         enrolledCourses: updatedCourses,
-        activity: {
-          ...prev.activity,
-          [today]: {
-            count: activityEntry.count + 1,
-            details: [
-              `${action}: "${lessonTitle}"`,
-              ...activityEntry.details
-            ]
-          }
-        }
       };
     });
+
+    // Отправляем обновлённый прогресс на сервер
+    try {
+      await updateCourseProgress(token, courseSlug, updatedCompleted);
+    } catch (error) {
+      console.error("Ошибка обновления прогресса:", error);
+    }
   };
 
   return (
@@ -131,9 +105,7 @@ const UserProfile = () => {
       {/* Основная информация */}
       <section className="user-info-section">
         <div className="avatar-container">
-          <div className="avatar">
-            {userData.name.charAt(0)}
-          </div>
+          <div className="avatar">{userData.name.charAt(0)}</div>
           <div className="user-meta">
             <h2>{userData.name}</h2>
             <p>{userData.email}</p>
@@ -157,9 +129,9 @@ const UserProfile = () => {
       <section className="activity-section">
         <h3>Активность</h3>
         <div className="activity-calendar">
-          {Object.entries(userData.activity).map(([date, activity]) => (
-            <div 
-              key={date} 
+          {Object.entries(userData.activity || {}).map(([date, activity]) => (
+            <div
+              key={date}
               className={`activity-day ${activity.count > 2 ? 'high' : 'low'}`}
               title={`${date}: ${activity.details.join(', ')}`}
               onClick={() => setSelectedDate(date)}
@@ -171,7 +143,7 @@ const UserProfile = () => {
       </section>
 
       {/* Детали выбранной даты */}
-      {selectedDate && userData.activity[selectedDate] && (
+      {selectedDate && userData.activity && userData.activity[selectedDate] && (
         <div className="activity-details">
           <h4>{formatDate(selectedDate)}</h4>
           <ul>
@@ -186,10 +158,12 @@ const UserProfile = () => {
       <section className="courses-section">
         <h3>Мои курсы</h3>
         <div className="courses-grid">
-          {userData.enrolledCourses.map(({ slug, progress }) => {
+          {userData.enrolledCourses && userData.enrolledCourses.map(({ slug, progress }) => {
             const course = courses[slug];
+            if (!course) return null;
+
             return (
-              <div 
+              <div
                 key={slug}
                 className={`course-card ${selectedCourseSlug === slug ? 'active' : ''}`}
                 onClick={() => setSelectedCourseSlug(slug)}
@@ -200,8 +174,8 @@ const UserProfile = () => {
                 </div>
                 <div className="progress-container">
                   <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
+                    <div
+                      className="progress-fill"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
@@ -221,14 +195,11 @@ const UserProfile = () => {
         <div className="course-details">
           <div className="course-details-header">
             <h3>{selectedCourse.title}</h3>
-            <Link 
-              to={`/courses/${selectedCourseSlug}`} 
-              className="course-link"
-            >
+            <Link to={`/courses/${selectedCourseSlug}`} className="course-link">
               Перейти к курсу →
             </Link>
           </div>
-          
+
           <div className="course-progress">
             <div className="progress-info">
               <span>Прогресс: {getUserCourseProgress(selectedCourseSlug).progress}%</span>
@@ -239,15 +210,17 @@ const UserProfile = () => {
           <div className="course-program">
             <h4>Программа курса:</h4>
             <ul>
-              {selectedCourse.program.map((lesson, index) => {
-                const isCompleted = getUserCourseProgress(selectedCourseSlug)
-                  .completedLessons?.includes(index) || false;
-                
+              {selectedCourse.program && selectedCourse.program.map((lesson, index) => {
+                const courseProgress = getUserCourseProgress(selectedCourseSlug);
+                const completedLessonsRaw = courseProgress.completedLessons;
+                const completedLessons = Array.isArray(completedLessonsRaw)
+                  ? completedLessonsRaw
+                  : (typeof completedLessonsRaw === 'number' ? [completedLessonsRaw] : []);
+
+                const isCompleted = completedLessons.includes(index);
+
                 return (
-                  <li 
-                    key={index} 
-                    className={isCompleted ? 'completed' : ''}
-                  >
+                  <li key={index} className={isCompleted ? 'completed' : ''}>
                     <div className="lesson-info">
                       <span className="lesson-title">{lesson.title}</span>
                       <span className="lesson-duration">{lesson.duration}</span>
