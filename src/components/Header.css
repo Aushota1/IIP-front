@@ -274,3 +274,19 @@
     z-index: 1001;
   }
 }
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8e2de2, #4a00e0);
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+  line-height: 36px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

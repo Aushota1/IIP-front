@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchUserProfile, updateCourseProgress } from '../api';
-import { courses } from './courses'; // локальный справочник курсов
-import LoadingSpinner from '../components/LoadingSpinner'; // импорт компонента загрузки
+import { courses } from './courses';
+import LoadingSpinner from '../components/LoadingSpinner';
+import Sidebar from '../components/Sidebar';
+import '../components/Sidebar.css';
 import './UserProfile.css';
 
 const UserProfile = () => {
@@ -106,7 +108,6 @@ const UserProfile = () => {
 
     try {
       await updateCourseProgress(token, courseSlug, updatedCompleted);
-      // Успешное обновление — сообщение не показываем (убрано)
     } catch (err) {
       console.error('Ошибка обновления прогресса:', err);
       setError('Не удалось обновить прогресс. Попробуйте ещё раз.');
@@ -115,149 +116,153 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="profile-container">
-      {error && <div className="error-message">{error}</div>}
+    <div className="user-profile-layout">
+      <Sidebar/>
 
-      <header className="profile-header">
-        <h1>Личный кабинет</h1>
-        <div className="time-stats">
-          <span>На платформе: {userData.stats.totalTime}</span>
-          <span>Последний визит: {userData.lastVisit}</span>
-        </div>
-      </header>
+      <div className="profile-container">
+        {error && <div className="error-message">{error}</div>}
 
-      <section className="user-info-section">
-        <div className="avatar-container">
-          <div className="avatar">{userData.name.charAt(0)}</div>
-          <div className="user-meta">
-            <h2>{userData.name}</h2>
-            <p>{userData.email}</p>
-            <p>Участник с {userData.joinDate}</p>
+        <header className="profile-header">
+          <h1>Личный кабинет</h1>
+          <div className="time-stats">
+            <span>На платформе: {userData.stats.totalTime}</span>
+            <span>Последний визит: {userData.lastVisit}</span>
           </div>
-        </div>
+        </header>
 
-        <div className="github-like-stats">
-          <div className="stat-box">
-            <span className="stat-number">{userData.stats.streak}</span>
-            <span className="stat-label">Дней подряд</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-number">{userData.stats.completedTasks}</span>
-            <span className="stat-label">Решено задач</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="activity-section">
-        <h3>Активность</h3>
-        <div className="activity-calendar">
-          {Object.entries(userData.activity || {}).map(([date, activity]) => (
-            <div
-              key={date}
-              className={`activity-day ${activity.count > 2 ? 'high' : 'low'}`}
-              title={`${date}: ${activity.details.join(', ')}`}
-              onClick={() => setSelectedDate(date)}
-            >
-              {new Date(date).getDate()}
+        <section className="user-info-section">
+          <div className="avatar-container">
+            <div className="avatar">{userData.name.charAt(0)}</div>
+            <div className="user-meta">
+              <h2>{userData.name}</h2>
+              <p>{userData.email}</p>
+              <p>Участник с {userData.joinDate}</p>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      {selectedDate && userData.activity && userData.activity[selectedDate] && (
-        <div className="activity-details">
-          <h4>{formatDate(selectedDate)}</h4>
-          <ul>
-            {userData.activity[selectedDate].details.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+          <div className="github-like-stats">
+            <div className="stat-box">
+              <span className="stat-number">{userData.stats.streak}</span>
+              <span className="stat-label">Дней подряд</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-number">{userData.stats.completedTasks}</span>
+              <span className="stat-label">Решено задач</span>
+            </div>
+          </div>
+        </section>
 
-      <section className="courses-section">
-        <h3>Мои курсы</h3>
-        <div className="courses-grid">
-          {userData.enrolledCourses && userData.enrolledCourses.map(({ slug, progress }) => {
-            const course = courses[slug];
-            if (!course) return null;
-
-            return (
+        <section className="activity-section">
+          <h3>Активность</h3>
+          <div className="activity-calendar">
+            {Object.entries(userData.activity || {}).map(([date, activity]) => (
               <div
-                key={slug}
-                className={`course-card ${selectedCourseSlug === slug ? 'active' : ''}`}
-                onClick={() => setSelectedCourseSlug(slug)}
+                key={date}
+                className={`activity-day ${activity.count > 2 ? 'high' : 'low'}`}
+                title={`${date}: ${activity.details.join(', ')}`}
+                onClick={() => setSelectedDate(date)}
               >
-                <div className="course-card-header">
-                  <h4>{course.title}</h4>
-                  <span className="course-level">{course.level}</span>
-                </div>
-                <div className="progress-container">
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <span>{progress}%</span>
-                </div>
-                <div className="course-meta">
-                  <span>Последняя активность: {formatDate(getUserCourseProgress(slug).lastActivity)}</span>
-                </div>
+                {new Date(date).getDate()}
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {selectedCourse && (
-        <div className="course-details">
-          <div className="course-details-header">
-            <h3>{selectedCourse.title}</h3>
-            <Link to={`/courses/${selectedCourseSlug}`} className="course-link">
-              Перейти к курсу →
-            </Link>
+            ))}
           </div>
+        </section>
 
-          <div className="course-progress">
-            <div className="progress-info">
-              <span>Прогресс: {getUserCourseProgress(selectedCourseSlug).progress}%</span>
-              <span>{selectedCourse.duration}</span>
-            </div>
-          </div>
-
-          <div className="course-program">
-            <h4>Программа курса:</h4>
+        {selectedDate && userData.activity && userData.activity[selectedDate] && (
+          <div className="activity-details">
+            <h4>{formatDate(selectedDate)}</h4>
             <ul>
-              {selectedCourse.program && selectedCourse.program.map((lesson, index) => {
-                const courseProgress = getUserCourseProgress(selectedCourseSlug);
-                const completedLessonsRaw = courseProgress.completedLessons;
-                const completedLessons = Array.isArray(completedLessonsRaw)
-                  ? completedLessonsRaw
-                  : (typeof completedLessonsRaw === 'number' ? [completedLessonsRaw] : []);
-
-                const isCompleted = completedLessons.includes(index);
-
-                return (
-                  <li key={index} className={isCompleted ? 'completed' : ''}>
-                    <div className="lesson-info">
-                      <span className="lesson-title">{lesson.title}</span>
-                      <span className="lesson-duration">{lesson.duration}</span>
-                    </div>
-                    <p className="lesson-description">{lesson.description}</p>
-                    <button
-                      className={`completion-toggle ${isCompleted ? 'completed' : ''}`}
-                      onClick={() => toggleLessonCompletion(selectedCourseSlug, index)}
-                    >
-                      {isCompleted ? '✓ Завершено' : '○ Завершить'}
-                    </button>
-                  </li>
-                );
-              })}
+              {userData.activity[selectedDate].details.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ul>
           </div>
-        </div>
-      )}
+        )}
+
+        <section className="courses-section">
+          <h3>Мои курсы</h3>
+          <div className="courses-grid">
+            {userData.enrolledCourses && userData.enrolledCourses.map(({ slug, progress }) => {
+              const course = courses[slug];
+              if (!course) return null;
+
+              return (
+                <div
+                  key={slug}
+                  className={`course-card ${selectedCourseSlug === slug ? 'active' : ''}`}
+                  onClick={() => setSelectedCourseSlug(slug)}
+                >
+                  <div className="course-card-header">
+                    <h4>{course.title}</h4>
+                    <span className="course-level">{course.level}</span>
+                  </div>
+                  <div className="progress-container">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="course-meta">
+                    <span>Последняя активность: {formatDate(getUserCourseProgress(slug).lastActivity)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {selectedCourse && (
+          <div className="course-details">
+            <div className="course-details-header">
+              <h3>{selectedCourse.title}</h3>
+              <Link to={`/courses/${selectedCourseSlug}`} className="course-link">
+                Перейти к курсу →
+              </Link>
+            </div>
+
+            <div className="course-progress">
+              <div className="progress-info">
+                <span>Прогресс: {getUserCourseProgress(selectedCourseSlug).progress}%</span>
+                <span>{selectedCourse.duration}</span>
+              </div>
+            </div>
+
+            <div className="course-program">
+              <h4>Программа курса:</h4>
+              <ul>
+                {selectedCourse.program && selectedCourse.program.map((lesson, index) => {
+                  const courseProgress = getUserCourseProgress(selectedCourseSlug);
+                  const completedLessonsRaw = courseProgress.completedLessons;
+                  const completedLessons = Array.isArray(completedLessonsRaw)
+                    ? completedLessonsRaw
+                    : (typeof completedLessonsRaw === 'number' ? [completedLessonsRaw] : []);
+
+                  const isCompleted = completedLessons.includes(index);
+
+                  return (
+                    <li key={index} className={isCompleted ? 'completed' : ''}>
+                      <div className="lesson-info">
+                        <span className="lesson-title">{lesson.title}</span>
+                        <span className="lesson-duration">{lesson.duration}</span>
+                      </div>
+                      <p className="lesson-description">{lesson.description}</p>
+                      <button
+                        className={`completion-toggle ${isCompleted ? 'completed' : ''}`}
+                        onClick={() => toggleLessonCompletion(selectedCourseSlug, index)}
+                      >
+                        {isCompleted ? '✓ Завершено' : '○ Завершить'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

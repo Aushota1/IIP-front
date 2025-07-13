@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../api';
+import { useUser } from '../context/UserContext';
+import { fetchUserProfile } from '../api'; // если у тебя есть такой API
 import './AuthPages.css';
 
 const LoginPage = () => {
@@ -15,7 +17,7 @@ const LoginPage = () => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { setUser } = useUser(); // достаём setUser
   useEffect(() => {
     if (location.state?.successMessage) {
       setSuccessMessage(location.state.successMessage);
@@ -38,29 +40,33 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
+  e.preventDefault();
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+  if (!validateEmail(formData.email)) {
+    setError('Please enter a valid email address');
+    return;
+  }
 
-    setIsLoading(true);
-    
-    try {
-      await loginUser(formData);
-      navigate('/profile');
-    } catch (err) {
-      setError(typeof err === 'string' ? err : 'Login failed. Please check your credentials');
-    } finally {
-      setIsLoading(false);
-    }
+  if (formData.password.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    await loginUser(formData); // отправляем логин
+    const profile = await fetchUserProfile(); // получаем профиль
+    setUser(profile); // сохраняем в контекст
+    localStorage.setItem('user', JSON.stringify(profile)); // сохраняем в localStorage
+    navigate('/profile');
+  } catch (err) {
+    setError(typeof err === 'string' ? err : 'Login failed. Please check your credentials');
+  } finally {
+    setIsLoading(false);
+  }
   };
+
 
   return (
     <div className="smooth-auth-page">

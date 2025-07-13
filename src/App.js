@@ -6,9 +6,11 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import UserProfile from './pages/UserProfile';
 import AllCourses from './pages/AllCourses';
+import { UserProvider } from './context/UserContext'; 
 function App() {
   return (
-    <Router>
+  <Router>
+    <UserProvider>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/courses/:courseSlug" element={<CoursePage />} />
@@ -17,7 +19,8 @@ function App() {
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/courses" element={<AllCourses />} />
       </Routes>
-    </Router>
+    </UserProvider>
+  </Router>
   );
 }
 
