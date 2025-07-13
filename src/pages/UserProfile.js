@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchUserProfile, updateCourseProgress } from '../api';
-import { courses } from './courses'; // Локальный справочник курсов
+import { courses } from './courses'; // локальный справочник курсов
+import LoadingSpinner from '../components/LoadingSpinner'; // импорт компонента загрузки
 import './UserProfile.css';
 
 const UserProfile = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [error, setError] = useState(null);
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const options = { day: 'numeric', month: 'long' };
+    return new Date(dateStr).toLocaleDateString('ru-RU', options);
+  };
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    setLoadingProfile(true);
     fetchUserProfile()
       .then(data => {
         setUserData(data);
@@ -17,12 +34,24 @@ const UserProfile = () => {
           setSelectedCourseSlug(data.enrolledCourses[0].slug);
         }
       })
-      .catch(error => {
-        console.error("Ошибка загрузки профиля:", error);
-      });
-  }, []);
+      .catch(err => {
+        console.error('Ошибка загрузки профиля:', err);
+        setError('Не удалось загрузить профиль');
+      })
+      .finally(() => setLoadingProfile(false));
+  }, [navigate]);
 
-  if (!userData) return <div>Загрузка профиля...</div>;
+  if (loadingProfile) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
+  if (!userData) {
+    return <div>Пользователь не найден</div>;
+  }
 
   const token = localStorage.getItem('token');
   const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
@@ -30,12 +59,6 @@ const UserProfile = () => {
   const getUserCourseProgress = (slug) => {
     if (!userData.enrolledCourses) return {};
     return userData.enrolledCourses.find(c => c.slug === slug) || {};
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const options = { day: 'numeric', month: 'long' };
-    return new Date(dateStr).toLocaleDateString('ru-RU', options);
   };
 
   const toggleLessonCompletion = async (courseSlug, lessonIndex) => {
@@ -49,7 +72,6 @@ const UserProfile = () => {
 
     const isCompleted = completedLessons.includes(lessonIndex);
 
-    // Формируем новый массив завершённых уроков
     const updatedCompleted = isCompleted
       ? completedLessons.filter(i => i !== lessonIndex)
       : [...completedLessons, lessonIndex];
@@ -57,11 +79,8 @@ const UserProfile = () => {
     const totalLessons = courses[courseSlug]?.program?.length || 1;
     const newProgress = Math.round((updatedCompleted.length / totalLessons) * 100);
 
-    console.log(`Курс: ${courseSlug}`);
-    console.log(`Обновлённый список завершённых уроков:`, updatedCompleted);
-    console.log(`Рассчитанный прогресс: ${newProgress}%`);
+    const prevUserData = userData;
 
-    // Обновляем состояние с новыми данными
     setUserData(prev => {
       if (!prev || !prev.enrolledCourses) return prev;
 
@@ -83,17 +102,22 @@ const UserProfile = () => {
       };
     });
 
-    // Отправляем обновлённый прогресс на сервер
+    setError(null);
+
     try {
       await updateCourseProgress(token, courseSlug, updatedCompleted);
-    } catch (error) {
-      console.error("Ошибка обновления прогресса:", error);
+      // Успешное обновление — сообщение не показываем (убрано)
+    } catch (err) {
+      console.error('Ошибка обновления прогресса:', err);
+      setError('Не удалось обновить прогресс. Попробуйте ещё раз.');
+      setUserData(prevUserData);
     }
   };
 
   return (
     <div className="profile-container">
-      {/* Хедер */}
+      {error && <div className="error-message">{error}</div>}
+
       <header className="profile-header">
         <h1>Личный кабинет</h1>
         <div className="time-stats">
@@ -102,7 +126,6 @@ const UserProfile = () => {
         </div>
       </header>
 
-      {/* Основная информация */}
       <section className="user-info-section">
         <div className="avatar-container">
           <div className="avatar">{userData.name.charAt(0)}</div>
@@ -125,7 +148,6 @@ const UserProfile = () => {
         </div>
       </section>
 
-      {/* Календарь активности */}
       <section className="activity-section">
         <h3>Активность</h3>
         <div className="activity-calendar">
@@ -142,7 +164,6 @@ const UserProfile = () => {
         </div>
       </section>
 
-      {/* Детали выбранной даты */}
       {selectedDate && userData.activity && userData.activity[selectedDate] && (
         <div className="activity-details">
           <h4>{formatDate(selectedDate)}</h4>
@@ -154,7 +175,6 @@ const UserProfile = () => {
         </div>
       )}
 
-      {/* Блок курсов */}
       <section className="courses-section">
         <h3>Мои курсы</h3>
         <div className="courses-grid">
@@ -177,7 +197,7 @@ const UserProfile = () => {
                     <div
                       className="progress-fill"
                       style={{ width: `${progress}%` }}
-                    ></div>
+                    />
                   </div>
                   <span>{progress}%</span>
                 </div>
@@ -190,7 +210,6 @@ const UserProfile = () => {
         </div>
       </section>
 
-      {/* Детали выбранного курса */}
       {selectedCourse && (
         <div className="course-details">
           <div className="course-details-header">

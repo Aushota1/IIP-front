@@ -1,0 +1,42 @@
+.loading-spinner-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #88d3ce;
+  font-family: 'Poppins', sans-serif;
+}
+
+.loading-spinner {
+  animation: rotate 2s linear infinite;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+}
+
+.loading-spinner .path {
+  stroke: #6e45e2;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
