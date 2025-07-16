@@ -34,26 +34,34 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateEmail(formData.email)) {
       setError('Please enter a valid email address');
       return;
     }
-
+    if (formData.firstName.trim().length < 1 || formData.lastName.trim().length < 1) {
+      setError('First Name and Last Name are required');
+      return;
+    }
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
-      const { confirmPassword, ...userData } = formData;
+      // Ключевой момент: формируем корректный payload
+      const userData = {
+        email: formData.email,
+        name: (formData.firstName + ' ' + formData.lastName).trim(),
+        password: formData.password,
+      };
+
       await registerUser(userData);
       navigate('/login', { state: { successMessage: 'Registration successful! Please login.' } });
     } catch (err) {
@@ -189,16 +197,16 @@ const RegisterPage = () => {
             >
               {showConfirmPassword ? (
                 <svg viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M12 9C13.7 9 15 10.3 15 12S13.7 15 12 15 9 13.7 9 12 10.3 9 12 9M12 4.5C17 4.5 21.3 7.6 23 12C21.3 16.4 17 19.5 12 19.5S2.7 16.4 1 12C2.7 7.6 7 4.5 12 4.5M3.2 12C4.8 15 8.1 17 12 17S19.2 15 20.8 12C19.2 9 15.9 7 12 7S4.8 9 3.2 12Z" />
+                  <path fill="currentColor" d="M12 9C13.7 9 15 10.3 15 12S13.7 15 12 15 9 13.7 9 12 10.3 9 12 9M12 4.5C17 4.5 21.3 7.6 23 12C22.4 13.4 21.5 14.7 20.4 15.8L18.7 14.1C19.5 13.4 20.1 12.5 20.6 11.6C19.1 8.8 15.8 7 12 7C10.9 7 9.8 7.2 8.8 7.5L7.2 5.9C8.7 5.2 10.3 4.8 12 4.5Z" />
                 </svg>
               ) : (
                 <svg viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M2 5.3L3.3 4L20 20.7L18.7 22L15.3 18.6C14.1 19.3 13 19.7 12 20C7.6 20 3.5 16.9 1.4 12C2.1 10.6 3.1 9.2 4.2 8L2 5.3M12 9C13.7 9 15 10.3 15 12C15 12.3 14.9 12.6 14.8 12.9L11.1 9.2C11.4 9.1 11.7 9 12 9M12 4.5C17 4.5 21.3 7.6 23 12C22.4 13.4 21.5 14.7 20.4 15.8L18.7 14.1C19.5 13.4 20.1 12.5 20.6 11.6C19.1 8.8 15.8 7 12 7C10.9 7 9.8 7.2 8.8 7.5L7.2 5.9C8.7 5.2 10.3 4.8 12 4.5Z" />
+                  <path fill="currentColor" d="M2 5.3L3.3 4L20 20.7L18.7 22L15.3 18.6C14.1 19.3 13 19.7 12 20C7.6 20 3.5 16.9 1.4 12C2.1 10.6 3.1 9.2 4.2 8L2 5.3M12 9C13.7 9 15 10.3 15 12C15 12.3 14.9 12.6 14.8 12.9L11.1 9.2C11.4 9.1 11.7 9 12 9M12 4.5C17 4.5 21.3 7.6 23 12C22.4 13.4 21.5 14.7 20.4 15.8L18.7 14.1C19.5 13.4 20.1 12.5 20.6 11.6C19.1 8.8 15.8 7 12 7C11.1 7 10.2 7.1 9.3 7.3L9.5 6.6Z" />
                 </svg>
               )}
             </button>
           </div>
-          
+
           <button
             type="submit"
             className={`smooth-submit-btn ${isHovered ? 'smooth-btn-hover' : ''}`}
@@ -217,7 +225,7 @@ const RegisterPage = () => {
             <span className="smooth-btn-wave"></span>
           </button>
         </form>
-        
+
         <div className="smooth-auth-footer">
           Already have an account? <Link to="/login">Sign in</Link>
         </div>

@@ -55,7 +55,6 @@ const UserProfile = () => {
     return <div>Пользователь не найден</div>;
   }
 
-  const token = localStorage.getItem('token');
   const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
 
   const getUserCourseProgress = (slug) => {
@@ -107,13 +106,16 @@ const UserProfile = () => {
     setError(null);
 
     try {
-      await updateCourseProgress(token, courseSlug, updatedCompleted);
+      await updateCourseProgress(courseSlug, updatedCompleted);
     } catch (err) {
       console.error('Ошибка обновления прогресса:', err);
       setError('Не удалось обновить прогресс. Попробуйте ещё раз.');
       setUserData(prevUserData);
     }
   };
+
+  const stats = userData.stats || { streak: 0, completedTasks: 0, totalTime: "0ч" };
+  const activity = userData.activity || {};
 
   return (
     <div className="user-profile-layout">
@@ -125,14 +127,14 @@ const UserProfile = () => {
         <header className="profile-header">
           <h1>Личный кабинет</h1>
           <div className="time-stats">
-            <span>На платформе: {userData.stats.totalTime}</span>
+            <span>На платформе: {stats.totalTime}</span>
             <span>Последний визит: {userData.lastVisit}</span>
           </div>
         </header>
 
         <section className="user-info-section">
           <div className="avatar-container">
-            <div className="avatar">{userData.name.charAt(0)}</div>
+            <div className="avatar">{userData.name ? userData.name.charAt(0) : '?'}</div>
             <div className="user-meta">
               <h2>{userData.name}</h2>
               <p>{userData.email}</p>
@@ -142,11 +144,11 @@ const UserProfile = () => {
 
           <div className="github-like-stats">
             <div className="stat-box">
-              <span className="stat-number">{userData.stats.streak}</span>
+              <span className="stat-number">{stats.streak}</span>
               <span className="stat-label">Дней подряд</span>
             </div>
             <div className="stat-box">
-              <span className="stat-number">{userData.stats.completedTasks}</span>
+              <span className="stat-number">{stats.completedTasks}</span>
               <span className="stat-label">Решено задач</span>
             </div>
           </div>
@@ -155,11 +157,11 @@ const UserProfile = () => {
         <section className="activity-section">
           <h3>Активность</h3>
           <div className="activity-calendar">
-            {Object.entries(userData.activity || {}).map(([date, activity]) => (
+            {Object.entries(activity).map(([date, day]) => (
               <div
                 key={date}
-                className={`activity-day ${activity.count > 2 ? 'high' : 'low'}`}
-                title={`${date}: ${activity.details.join(', ')}`}
+                className={`activity-day ${day.count > 2 ? 'high' : 'low'}`}
+                title={`${date}: ${day.details?.join(', ')}`}
                 onClick={() => setSelectedDate(date)}
               >
                 {new Date(date).getDate()}
@@ -168,11 +170,11 @@ const UserProfile = () => {
           </div>
         </section>
 
-        {selectedDate && userData.activity && userData.activity[selectedDate] && (
+        {selectedDate && activity[selectedDate] && (
           <div className="activity-details">
             <h4>{formatDate(selectedDate)}</h4>
             <ul>
-              {userData.activity[selectedDate].details.map((item, i) => (
+              {activity[selectedDate].details && activity[selectedDate].details.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>

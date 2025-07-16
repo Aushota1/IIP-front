@@ -6,26 +6,34 @@ const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
+  // Безопасный парсинг user из localStorage
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      // savedUser должен быть не пустым и не "undefined"
+      return savedUser && savedUser !== "undefined" ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    // Если есть токен и нет user в state, получаем профиль с сервера
     if (token && !user) {
-      fetchUserProfile()
+      fetchUserProfile(token)
         .then(data => {
           setUser(data);
           localStorage.setItem('user', JSON.stringify(data));
         })
         .catch(() => {
+          // Токен невалидный или пользователь удалён — чистим всё
           setUser(null);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         });
     }
-  }, [user]);
+  }, [user]); // если token изменится или user появится — перезапустит эффект
 
   const logout = () => {
     localStorage.removeItem('token');
