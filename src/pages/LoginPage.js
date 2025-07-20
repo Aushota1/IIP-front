@@ -55,13 +55,14 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      // Логинимся и сохраняем токен
+      // Логинимся и сохраняем токен (axios интерцептор добавит Authorization)
       await loginUser(formData);
 
+      // Проверяем, что токен действительно есть в localStorage
       const token = localStorage.getItem('token');
       if (!token) throw new Error("Token not found. Login failed.");
 
-      // Получаем профиль с токеном в query
+      // Получаем профиль пользователя (токен будет автоматически добавлен в заголовок)
       const profile = await fetchUserProfile();
 
       setUser(profile);

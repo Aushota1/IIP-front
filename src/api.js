@@ -7,7 +7,17 @@ const api = axios.create({
   },
 });
 
-// Убираем интерцептор добавления Authorization, т.к. бекенд не ожидает токен в заголовке
+// Добавляем интерцептор для автоматического добавления Authorization заголовка
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Обработка ошибок
 api.interceptors.response.use(
@@ -27,16 +37,14 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
-  const token = response.data.token;  // именно token
+  // Правильное имя поля access_token
+  const token = response.data.access_token;
   localStorage.setItem('token', token);
   return response.data;
 };
 
 export const fetchUserProfile = async () => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('Token not found');
-
-  const response = await api.get(`/auth/profile?token=${token}`);
+  const response = await api.get('/auth/users/me');
   return response.data;
 };
 
@@ -58,10 +66,7 @@ export const createCourse = async (courseData) => {
 
 // === Progress ===
 export const updateCourseProgress = async (courseSlug, completedLessons) => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('Token not found');
-
-  const response = await api.post(`/auth/progress?token=${token}`, {
+  const response = await api.post('/progress/update', {
     course_slug: courseSlug,
     completed_lessons: completedLessons,
   });
@@ -69,10 +74,7 @@ export const updateCourseProgress = async (courseSlug, completedLessons) => {
 };
 
 export const getCourseProgress = async (courseId) => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('Token not found');
-
-  const response = await api.get(`/auth/progress/${courseId}?token=${token}`);
+  const response = await api.get(`/progress/my-courses`);
   return response.data;
 };
 
@@ -116,4 +118,13 @@ export const voteAnswer = async (answerId, voteData) => {
 // === Test ===
 export const testApi = async () => {
   return await api.get('/test');
+};
+
+// === Progress - дополнительно ===
+export const completeLesson = async (courseId, contentId) => {
+  const response = await api.post('/progress/complete-lesson', {
+    course_id: courseId,
+    content_id: contentId,
+  });
+  return response.data;
 };

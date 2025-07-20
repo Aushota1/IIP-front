@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Home from './pages/Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CoursePage from './pages/CoursePage';
@@ -7,18 +7,9 @@ import RegisterPage from './pages/RegisterPage';
 import UserProfile from './pages/UserProfile';
 import AllCourses from './pages/AllCourses';
 import { UserProvider } from './context/UserContext';
-import { connectWebSocket } from './ws';
 
 function App() {
-  useEffect(() => {
-    connectWebSocket((event) => {
-      // Здесь можно обрабатывать любые сообщения от Kafka через WebSocket
-      console.log("📨 Kafka Event:", event);
-      if (event.event === "user_registered") {
-        alert(`🎉 Новый пользователь: ${event.name} (${event.email})`);
-      }
-    });
-  }, []);
+  // Убираем useEffect с connectWebSocket, чтобы не было зависимости от Kafka
 
   return (
     <Router>
