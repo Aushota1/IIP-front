@@ -37,14 +37,21 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
-  // Правильное имя поля access_token
-  const token = response.data.access_token;
+  console.log('Login response:', response.data); // можно убрать после проверки
+
+  const token = response.data.access_token;  // <--- здесь заменено
+
+  if (!token) {
+    throw new Error('Token not found in login response');
+  }
+
   localStorage.setItem('token', token);
   return response.data;
 };
 
 export const fetchUserProfile = async () => {
   const response = await api.get('/auth/users/me');
+  console.log('User profile response:', response.data); // <-- добавьте сюда
   return response.data;
 };
 
@@ -65,16 +72,18 @@ export const createCourse = async (courseData) => {
 };
 
 // === Progress ===
-export const updateCourseProgress = async (courseSlug, completedLessons) => {
-  const response = await api.post('/progress/update', {
-    course_slug: courseSlug,
-    completed_lessons: completedLessons,
-  });
+
+export const getCourseProgress = async () => {
+  const response = await api.get('/progress/my-courses');
   return response.data;
 };
 
-export const getCourseProgress = async (courseId) => {
-  const response = await api.get(`/progress/my-courses`);
+export const completeLesson = async (courseId, contentId) => {
+  console.log('completeLesson called with:', { course_id: courseId, content_id: contentId });
+  const response = await api.post('/progress/complete-lesson', {
+    course_id: courseId,
+    content_id: contentId,
+  });
   return response.data;
 };
 
@@ -120,9 +129,8 @@ export const testApi = async () => {
   return await api.get('/test');
 };
 
-// === Progress - дополнительно ===
-export const completeLesson = async (courseId, contentId) => {
-  const response = await api.post('/progress/complete-lesson', {
+export const undoCompleteLesson = async (courseId, contentId) => {
+  const response = await api.post('/progress/undo-complete-lesson', {
     course_id: courseId,
     content_id: contentId,
   });

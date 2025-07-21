@@ -14,9 +14,8 @@ export const courses = {
       { icon: '👩‍🏫', title: 'Поддержка', text: 'Обратная связь от наставников' },
     ],
     program: [
-      { content_id: 1, title: 'Знакомство с интерфейсом Blender', description: 'Установка, обзор, управление сценой.', duration: '1ч' },
-      { content_id: 2, title: 'Примитивы и трансформации', description: 'Создание базовых объектов и их изменение.', duration: '1.5ч' },
-      { content_id: 3, title: 'Модификаторы', description: 'Сглаживание, массив, boolean.', duration: '2ч' },
+      { content_id: 1, title: 'Урок 1: Знакомство', description: 'Описание урока 1', duration: '10 мин' },
+      { content_id: 2, title: 'Урок 2: Основы', description: 'Описание урока 2', duration: '20 мин' },
     ],
     reviews: [
       {
@@ -24,8 +23,8 @@ export const courses = {
         role: 'Студент',
         text: 'Курс просто супер! Всё объясняется понятно и по делу.',
         rating: 5,
-        avatar: '/avatars/alexey.jpg'
-      }
+        avatar: '/avatars/alexey.jpg',
+      },
     ],
     instructors: [
       {
@@ -33,11 +32,9 @@ export const courses = {
         position: '3D-художник',
         bio: 'Работает с Blender более 10 лет.',
         photo: '/instructors/irina.jpg',
-        social: [
-          { icon: '🔗', url: 'https://linkedin.com/in/irinamorozova' }
-        ]
-      }
-    ]
+        social: [{ icon: '🔗', url: 'https://linkedin.com/in/irinamorozova' }],
+      },
+    ],
   },
 
   'algorithm-rush': {
@@ -55,8 +52,7 @@ export const courses = {
       { icon: '🧠', title: 'Хуки и Анимации', text: 'Фреймер, useEffect, useMemo' },
     ],
     program: [
-      { content_id: 1, title: 'JSX и компоненты', description: 'Структура и синтаксис React.', duration: '1ч' },
-      { content_id: 4, title: 'Состояние и события', description: 'useState, useEffect и взаимодействие.', duration: '2ч' }
+      { content_id: 4, title: 'хз че', description: 'Описание неизвестного урока.', duration: '13 мин' },
     ],
     reviews: [
       {
@@ -64,8 +60,8 @@ export const courses = {
         role: 'Frontend Developer',
         text: 'Очень насыщенный курс! Особенно понравились примеры с Framer Motion.',
         rating: 5,
-        avatar: '/avatars/nikita.jpg'
-      }
+        avatar: '/avatars/nikita.jpg',
+      },
     ],
     instructors: [
       {
@@ -73,11 +69,9 @@ export const courses = {
         position: 'Senior React-разработчик',
         bio: 'Опыт более 7 лет в разработке SPA.',
         photo: '/instructors/anna.jpg',
-        social: [
-          { icon: '🌐', url: 'https://annaserova.dev' }
-        ]
-      }
-    ]
+        social: [{ icon: '🌐', url: 'https://annaserova.dev' }],
+      },
+    ],
   },
 
   'ai-blackbox': {
@@ -95,8 +89,7 @@ export const courses = {
       { icon: '💻', title: 'Практика', text: 'Задания на Python' },
     ],
     program: [
-      { content_id: 1, title: 'Введение в ML', description: 'Что такое машинное обучение.', duration: '1ч' },
-      { content_id: 2, title: 'Обучение с учителем', description: 'Линейная регрессия, деревья решений.', duration: '2ч' }
+      { content_id: 3, title: 'Урок 3: Завершение и практика', description: 'Описание урока 3', duration: '30 мин' },
     ],
     reviews: [
       {
@@ -104,8 +97,8 @@ export const courses = {
         role: 'Data Scientist',
         text: 'Отличный старт для новичков в ML!',
         rating: 4,
-        avatar: '/avatars/svetlana.jpg'
-      }
+        avatar: '/avatars/svetlana.jpg',
+      },
     ],
     instructors: [
       {
@@ -113,10 +106,8 @@ export const courses = {
         position: 'ML-инженер',
         bio: 'Разрабатывает модели на Python, Kaggle Competitor.',
         photo: '/instructors/roman.jpg',
-        social: [
-          { icon: '📘', url: 'https://vk.com/mlroman' }
-        ]
-      }
-    ]
-  }
+        social: [{ icon: '📘', url: 'https://vk.com/mlroman' }],
+      },
+    ],
+  },
 };
