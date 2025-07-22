@@ -63,7 +63,8 @@ const RegisterPage = () => {
       };
 
       await registerUser(userData);
-      navigate('/login', { state: { successMessage: 'Registration successful! Please login.' } });
+      //navigate('/login', { state: { successMessage: 'Registration successful! Please login.' } });
+      navigate('/verify-email', { state: { email: userData.email } });
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Registration failed');
     } finally {

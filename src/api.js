@@ -154,3 +154,9 @@ export const enrollOnCourse = async (courseId) => {
   const response = await api.post('/progress/enroll', { course_id: courseId });
   return response.data;
 };
+
+
+export const verifyEmail = async (email, code) => {
+  const response = await api.post('/auth/verify-email', { email, code });
+  return response.data;
+};
