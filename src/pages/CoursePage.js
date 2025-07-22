@@ -6,9 +6,14 @@ import { loadFull } from 'tsparticles';
 import './CoursePage.css';
 import { courses } from './courses';
 
+// Импорт функции записи на курс
+import { enrollOnCourse } from '../api'; // проверь путь
+
 const CoursePage = () => {
   const { courseSlug } = useParams();
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const [enrollSuccess, setEnrollSuccess] = useState(null);  // null | true | false
+  const [errorMsg, setErrorMsg] = useState('');
   const [activeTab, setActiveTab] = useState('about');
   const { scrollYProgress } = useScroll();
   const course = courses[courseSlug];
@@ -35,9 +40,20 @@ const CoursePage = () => {
     </motion.div>
   );
 
-  const handleEnroll = () => {
+  // Обработчик нажатия на кнопку "Записаться"
+  const handleEnroll = async () => {
     setIsEnrolling(true);
-    setTimeout(() => setIsEnrolling(false), 2000);
+    setEnrollSuccess(null);
+    setErrorMsg('');
+    try {
+      await enrollOnCourse(course.id); // если API принимает id курса
+      setEnrollSuccess(true);
+    } catch (error) {
+      setEnrollSuccess(false);
+      setErrorMsg(error.toString());
+    } finally {
+      setIsEnrolling(false);
+    }
   };
 
   return (
@@ -56,22 +72,12 @@ const CoursePage = () => {
             fpsLimit: 120,
             interactivity: {
               events: {
-                onHover: {
-                  enable: true,
-                  mode: "repulse",
-                },
+                onHover: { enable: true, mode: "repulse" },
               },
-              modes: {
-                repulse: {
-                  distance: 100,
-                  duration: 0.4,
-                },
-              },
+              modes: { repulse: { distance: 100, duration: 0.4 } },
             },
             particles: {
-              color: {
-                value: "#ffffff",
-              },
+              color: { value: "#ffffff" },
               links: {
                 color: "#ffffff",
                 distance: 150,
@@ -79,41 +85,25 @@ const CoursePage = () => {
                 opacity: 0.3,
                 width: 1,
               },
-              collisions: {
-                enable: true,
-              },
+              collisions: { enable: true },
               move: {
                 direction: "none",
                 enable: true,
-                outModes: {
-                  default: "bounce",
-                },
+                outModes: { default: "bounce" },
                 random: false,
                 speed: 1,
                 straight: false,
               },
-              number: {
-                density: {
-                  enable: true,
-                  area: 800,
-                },
-                value: 60,
-              },
-              opacity: {
-                value: 0.5,
-              },
-              shape: {
-                type: "circle",
-              },
-              size: {
-                value: { min: 1, max: 3 },
-              },
+              number: { density: { enable: true, area: 800 }, value: 60 },
+              opacity: { value: 0.5 },
+              shape: { type: "circle" },
+              size: { value: { min: 1, max: 3 } },
             },
             detectRetina: true,
           }}
         />
       </div>
-      
+
       {/* Основной контент */}
       <div className="course-content">
         <motion.header 
@@ -182,10 +172,20 @@ const CoursePage = () => {
                 boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
               }}
               whileTap={{ scale: 0.95 }}
+              disabled={isEnrolling || enrollSuccess === true}
             >
-              {isEnrolling ? 'Записываем...' : 'Записаться на курс'}
+              {isEnrolling
+                ? 'Записываем...'
+                : enrollSuccess
+                  ? 'Вы записаны'
+                  : 'Записаться на курс'}
               <div className="button-liquid"></div>
             </motion.button>
+            {enrollSuccess === false && (
+              <div style={{ color: 'red', marginTop: 8 }}>
+                Ошибка: {errorMsg}
+              </div>
+            )}
           </div>
         </motion.header>
 

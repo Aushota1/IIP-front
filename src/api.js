@@ -136,3 +136,21 @@ export const undoCompleteLesson = async (courseId, contentId) => {
   });
   return response.data;
 };
+
+export const getActivityStreak = async () => {
+  const response = await api.get('/activity/streak');
+  return response.data;
+};
+
+
+export const getCompletedTasksCount = async () => {
+  const response = await api.get('/progress/task/completed-count');  // вызывать через gateway
+  return response.data;
+};
+
+
+export const enrollOnCourse = async (courseId) => {
+  // Отправляем POST запрос на gateway /progress/enroll
+  const response = await api.post('/progress/enroll', { course_id: courseId });
+  return response.data;
+};

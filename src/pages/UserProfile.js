@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchUserProfile, getCourseProgress, completeLesson, undoCompleteLesson, getActivityLogs } from '../api';
+import { 
+  fetchUserProfile, 
+  getCourseProgress, 
+  completeLesson, 
+  undoCompleteLesson, 
+  getActivityLogs, 
+  getActivityStreak,
+  getCompletedTasksCount
+} from '../api';
 import { courses } from './courses'; // локальные курсы с программой
 import LoadingSpinner from '../components/LoadingSpinner';
 import Sidebar from '../components/Sidebar';
@@ -18,11 +26,23 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [streak, setStreak] = useState(0);
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date)) return '';
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  const getDaysOnPlatform = (joinDateStr) => {
+    if (!joinDateStr) return 0;
+    const joinDate = new Date(joinDateStr);
+    const now = new Date();
+    const diffMs = now - joinDate;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 ? diffDays : 0;
   };
 
   useEffect(() => {
@@ -37,8 +57,13 @@ const UserProfile = () => {
       setError(null);
       try {
         const profile = await fetchUserProfile();
+        profile.lastVisit = profile.last_visit;
+        profile.joinDate = profile.join_date;
+
         const progressList = await getCourseProgress();
         const activityData = await getActivityLogs();
+        const streakData = await getActivityStreak();
+        const completedCount = await getCompletedTasksCount();
 
         const enrolledCourses = progressList.map(p => {
           const courseSlug = Object.keys(courses).find(slug => courses[slug].id === p.course_id);
@@ -58,6 +83,8 @@ const UserProfile = () => {
         setUserData(profile);
         setUserCourses(enrolledCourses);
         setActivity(activityData);
+        setStreak(streakData.streak || 0);
+        setCompletedTasksCount(completedCount.count || 0);
 
         if (enrolledCourses.length > 0) {
           setSelectedCourseSlug(enrolledCourses[0].slug);
@@ -71,12 +98,6 @@ const UserProfile = () => {
 
     loadData();
   }, [navigate]);
-
-  if (loading) return <LoadingSpinner />;
-  if (error) return <div className="error-message">{error}</div>;
-  if (!userData) return <div>Пользователь не найден</div>;
-
-  const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
 
   const getUserCourseProgress = (slug) => {
     if (!userCourses) return {};
@@ -96,35 +117,45 @@ const UserProfile = () => {
     try {
       let updatedCompleted;
       if (completedLessons.includes(lessonId)) {
-        // Если урок уже завершен — снимаем отметку
-        await undoCompleteLesson(courses[courseSlug].id, lessonId);
+        await undoCompleteLesson(course.id, lessonId);
         updatedCompleted = completedLessons.filter(id => id !== lessonId);
       } else {
-        // Если урок не завершен — ставим отметку
-        await completeLesson(courses[courseSlug].id, lessonId);
+        await completeLesson(course.id, lessonId);
         updatedCompleted = [...completedLessons, lessonId];
       }
 
-      const totalLessons = courses[courseSlug]?.program?.length || 1;
+      // Обновляем прогресс курса локально
+      const totalLessons = course.program.length || 1;
       const newProgress = Math.round((updatedCompleted.length / totalLessons) * 100);
 
       setUserCourses(prevCourses =>
-        prevCourses.map(course => {
-          if (course.slug === courseSlug) {
+        prevCourses.map(c => {
+          if (c.slug === courseSlug) {
             return {
-              ...course,
+              ...c,
               completedLessons: updatedCompleted,
               progress: newProgress,
               lastActivity: new Date().toISOString(),
             };
           }
-          return course;
+          return c;
         })
       );
+
+      // **Загружаем актуальное количество решённых задач с сервера сразу после изменения**
+      const completedCount = await getCompletedTasksCount();
+      setCompletedTasksCount(completedCount.count || 0);
+
     } catch (err) {
       setError('Не удалось обновить прогресс. Попробуйте ещё раз.');
     }
   };
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <div className="error-message">{error}</div>;
+  if (!userData) return <div>Пользователь не найден</div>;
+
+  const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
 
   return (
     <div className="user-profile-layout">
@@ -136,7 +167,7 @@ const UserProfile = () => {
         <header className="profile-header">
           <h1>Личный кабинет</h1>
           <div className="time-stats">
-            <span>На платформе: {userData.stats?.totalTime || "0ч"}</span>
+            <span>На платформе: {getDaysOnPlatform(userData.joinDate)} дней</span>
             <span>Последний визит: {formatDate(userData.lastVisit)}</span>
           </div>
         </header>
@@ -153,11 +184,11 @@ const UserProfile = () => {
 
           <div className="github-like-stats">
             <div className="stat-box">
-              <span className="stat-number">{userData.stats?.streak || 0}</span>
+              <span className="stat-number">{streak}</span>
               <span className="stat-label">Дней подряд</span>
             </div>
             <div className="stat-box">
-              <span className="stat-number">{userData.stats?.completedTasks || 0}</span>
+              <span className="stat-number">{completedTasksCount}</span>
               <span className="stat-label">Решено задач</span>
             </div>
           </div>
