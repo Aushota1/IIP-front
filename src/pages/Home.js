@@ -5,113 +5,141 @@ import Footer from '../components/Footer';
 import CourseCard from '../components/CourseCard';
 import Testimonial from '../components/Testimonial';
 
-// Import images
-import algoCourse from '../assets/algo-course.jpg';
-import threeDCourse from '../assets/3d-course.jpg';
-import aiCourse from '../assets/ai-course.jpg';
-import student1 from '../assets/student1.jpg';
-import student2 from '../assets/student2.jpg';
-import student3 from '../assets/student3.jpg';
-
-// Particles config for background
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
+
+import bg1 from '../assets/fon1.jpg';
+import bg2 from '../assets/fon1.jpg';
+import bg3 from '../assets/fon3.jpg';
+import bg4 from '../assets/fon4.jpg';
+
+const courses = [
+  {
+    id: 1,
+    title: 'Algorithm Rush: Код как спорт',
+    slug: 'algorithm-rush',
+    description: 'Хардкорное программирование для будущих чемпионов ICPC и Google Hash Code',
+    duration: '6 месяцев',
+    level: 'Продвинутый',
+    price: '29 900 ₽',
+    image: bg1,
+    highlights: [
+      'Решение задач уровня LeetCode Hard',
+      'Оптимизация кода до наносекунд',
+      'Нейросети для олимпиад',
+      'Челлендж от VK и Яндекс'
+    ]
+  },
+  {
+    id: 2,
+    title: 'Blender & CAD: Дизайн будущего',
+    slug: 'blender-cad',
+    description: 'Создание 3D-моделей для геймдева, кино и метавселенных',
+    duration: '4 месяца',
+    level: 'Средний',
+    price: '24 900 ₽',
+    image: bg2,
+    highlights: [
+      'Моделирование как в Pixar',
+      'Проектирование умных устройств',
+      '3D-печать за 24 часа',
+      'NFT для метавселенных'
+    ]
+  },
+  {
+    id: 3,
+    title: 'AI Blackbox: От данных до нейросетей',
+    slug: 'ai-blackbox',
+    description: 'Полный цикл работы с искусственным интеллектом и анализом данных',
+    duration: '5 месяцев',
+    level: 'Продвинутый',
+    price: '34 900 ₽',
+    image: bg3,
+    highlights: [
+      'Generative AI (Stable Diffusion, GPT)',
+      'Анализ данных лучше Bloomberg',
+      'AutoML без тонн кода',
+      'Свой AI-стартап'
+    ]
+  },
+];
+
+const testimonials = [
+  {
+    id: 1,
+    name: 'Анна Смирнова',
+    role: 'Веб-разработчик',
+    text: 'Курс по веб-разработке помог мне сменить профессию и найти работу мечты. Преподаватели — настоящие профессионалы!',
+    avatar: bg4,
+  },
+  {
+    id: 2,
+    name: 'Иван Петров',
+    role: 'UX/UI дизайнер',
+    text: 'Отличная подача материала, много практики. После курса собрал портфолио и получил первые заказы на фрилансе.',
+    avatar: bg4,
+  },
+  {
+    id: 3,
+    name: 'Елена Ковалева',
+    role: 'Маркетолог',
+    text: 'Практические кейсы из курса по маркетингу сразу применила в работе. Результаты не заставили себя ждать!',
+    avatar: bg4,
+  },
+];
+
+const particlesOptions = {
+  fpsLimit: 60,
+  interactivity: {
+    events: {
+      onHover: { enable: true, mode: "repulse" },
+      onClick: { enable: false },
+      resize: true,
+    },
+    modes: {
+      repulse: { distance: 100, duration: 0.4 }
+    }
+  },
+  particles: {
+    color: { value: "#8f8f8f" },
+    links: {
+      color: "#8f8f8f",
+      distance: 140,
+      enable: true,
+      opacity: 0.1,
+      width: 1
+    },
+    collisions: { enable: false },
+    move: {
+      enable: true,
+      speed: 0.8,
+      direction: "none",
+      random: true,
+      straight: false,
+      outModes: { default: "bounce" }
+    },
+    number: { value: 50, density: { enable: true, area: 800 } },
+    opacity: { value: 0.15 },
+    shape: { type: "circle" },
+    size: { value: { min: 1, max: 3 } }
+  },
+  detectRetina: true,
+};
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
   const [activeSection, setActiveSection] = useState('home');
-  
-  const courses = [
-    {
-      id: 1,
-      title: 'Algorithm Rush: Код как спорт',
-      slug: 'algorithm-rush',
-      description: 'Хардкорное программирование для будущих чемпионов ICPC и Google Hash Code',
-      duration: '6 месяцев',
-      level: 'Продвинутый',
-      price: '29 900 ₽',
-      image: algoCourse,
-      highlights: [
-        'Решение задач уровня LeetCode Hard',
-        'Оптимизация кода до наносекунд',
-        'Нейросети для олимпиад',
-        'Челлендж от VK и Яндекс'
-      ]
-    },
-    {
-      id: 2,
-      title: 'Blender & CAD: Дизайн будущего',
-      slug: 'blender-cad',
-      description: 'Создание 3D-моделей для геймдева, кино и метавселенных',
-      duration: '4 месяца',
-      level: 'Средний',
-      price: '24 900 ₽',
-      image: threeDCourse,
-      highlights: [
-        'Моделирование как в Pixar',
-        'Проектирование умных устройств',
-        '3D-печать за 24 часа',
-        'NFT для метавселенных'
-      ]
-    },
-    {
-      id: 3,
-      title: 'AI Blackbox: От данных до нейросетей',
-      slug: 'ai-blackbox',
-      description: 'Полный цикл работы с искусственным интеллектом и анализом данных',
-      duration: '5 месяцев',
-      level: 'Продвинутый',
-      price: '34 900 ₽',
-      image: aiCourse,
-      highlights: [
-        'Generative AI (Stable Diffusion, GPT)',
-        'Анализ данных лучше Bloomberg',
-        'AutoML без тонн кода',
-        'Свой AI-стартап'
-      ]
-    },
-  ];
 
-  const testimonials = [
-    {
-      id: 1,
-      name: 'Анна Смирнова',
-      role: 'Веб-разработчик',
-      text: 'Курс по веб-разработке помог мне сменить профессию и найти работу мечты. Преподаватели — настоящие профессионалы!',
-      avatar: student1,
-    },
-    {
-      id: 2,
-      name: 'Иван Петров',
-      role: 'UX/UI дизайнер',
-      text: 'Отличная подача материала, много практики. После курса собрал портфолио и получил первые заказы на фрилансе.',
-      avatar: student2,
-    },
-    {
-      id: 3,
-      name: 'Елена Ковалева',
-      role: 'Маркетолог',
-      text: 'Практические кейсы из курса по маркетингу сразу применила в работе. Результаты не заставили себя ждать!',
-      avatar: student3,
-    },
-  ];
-
-  // Mouse position tracker for parallax effects
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleScroll = () => {
+    const onMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
+    const onScroll = () => {
       setScrollY(window.scrollY);
-      
-      // Determine active section for navigation
       const sections = ['home', 'about', 'courses', 'testimonials'];
       for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
+        const el = document.getElementById(section);
+        if (el) {
+          const rect = el.getBoundingClientRect();
           if (rect.top <= 100 && rect.bottom >= 100) {
             setActiveSection(section);
             break;
@@ -119,835 +147,572 @@ const Home = () => {
         }
       }
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('scroll', handleScroll);
-
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('scroll', onScroll);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
-  // Particles.js initialization
-  const particlesInit = async (main) => {
-    await loadFull(main);
-  };
+  const particlesInit = async (main) => { await loadFull(main); };
 
   return (
-    <div className="future-edu-app">
-      {/* Animated background particles */}
-      <div className="particles-container">
-        <Particles
-          id="tsparticles"
-          init={particlesInit}
-          options={{
-            fpsLimit: 120,
-            interactivity: {
-              events: {
-                onHover: {
-                  enable: true,
-                  mode: "repulse",
-                },
-              },
-              modes: {
-                repulse: {
-                  distance: 100,
-                  duration: 0.4,
-                },
-              },
-            },
-            particles: {
-              color: {
-                value: "#ffffff",
-              },
-              links: {
-                color: "#ffffff",
-                distance: 150,
-                enable: true,
-                opacity: 0.3,
-                width: 1,
-              },
-              collisions: {
-                enable: true,
-              },
-              move: {
-                direction: "none",
-                enable: true,
-                outModes: {
-                  default: "bounce",
-                },
-                random: false,
-                speed: 1,
-                straight: false,
-              },
-              number: {
-                density: {
-                  enable: true,
-                  area: 800,
-                },
-                value: 60,
-              },
-              opacity: {
-                value: 0.5,
-              },
-              shape: {
-                type: "circle",
-              },
-              size: {
-                value: { min: 1, max: 3 },
-              },
-            },
-            detectRetina: true,
-          }}
-        />
-      </div>
-
+    <div className="gpt-style-homepage">
       <Header activeSection={activeSection} />
 
-      {/* Hero Section with 3D parallax effect */}
-      <section 
-        id="home" 
-        className="hero-section"
-        style={{
-          '--mouse-x': `${(mousePosition.x / window.innerWidth) * 20 - 10}px`,
-          '--mouse-y': `${(mousePosition.y / window.innerHeight) * 20 - 10}px`,
-          '--scroll-y': `${scrollY * 0.3}px`
-        }}
-      >
+      {/* Hero Section */}
+      <section id="home" className="hero-section">
+        <Particles id="hero-particles" init={particlesInit} options={particlesOptions} />
+        <div className="hero-banner" />
         <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">
-              <span className="title-word title-word-1">Образование</span>
-              <span className="title-word title-word-2">будущего</span>
-              <span className="title-word title-word-3">уже здесь</span>
-            </h1>
-            <p className="hero-subtitle">
-              Онлайн-курсы от практикующих экспертов. Освойте востребованную профессию или повысьте квалификацию.
-            </p>
-            <div className="hero-buttons">
-              <Link to="#courses" className="btn btn-holographic">
-                <span>Выбрать курс</span>
-                <div className="btn-holographic-effect"></div>
-              </Link>
-              <button className="btn btn-neon-outline">
-                Узнать больше
-              </button>
-            </div>
+          <h1>
+            Образование <br />
+            <span className="gradient-text">будущего</span> <br />
+            уже здесь
+          </h1>
+          <p>
+            Онлайн-курсы от практикующих экспертов. Освойте востребованную профессию или повысьте квалификацию.
+          </p>
+          <div className="buttons">
+            <Link to="#courses" className="btn btn-primary">
+              Выбрать курс
+            </Link>
+            <button className="btn btn-secondary">Узнать больше</button>
           </div>
-          <div className="hero-visual">
-            <div className="floating-cube"></div>
-            <div className="floating-pyramid"></div>
-            <div className="floating-sphere"></div>
-          </div>
-        </div>
-        <div className="scroll-indicator">
-          <div className="mouse">
-            <div className="wheel"></div>
-          </div>
-          <div className="arrow-down"></div>
         </div>
       </section>
 
-      {/* About Section with animated counters */}
+      {/* About Section */}
       <section id="about" className="about-section">
-        <div className="section-header">
-          <h2 className="section-title">О нашей школе</h2>
-          <p className="section-subtitle">
-            FutureCode — это современная платформа для обучения профессиям будущего
-          </p>
-        </div>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-number" data-count="10">0</div>
-            <h3 className="stat-title">Направлений</h3>
-            <p className="stat-description">Программирование, AI, 3D-дизайн и другие востребованные специальности</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number" data-count="5000">0</div>
-            <h3 className="stat-title">Студентов</h3>
-            <p className="stat-description">Которые уже прошли наши курсы и добились успеха в профессии</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number" data-count="50">0</div>
-            <h3 className="stat-title">Преподавателей</h3>
-            <p className="stat-description">Практикующих экспертов из Google, NVIDIA и других топ-компаний</p>
+        <div className="container">
+          <h2>О нашей школе</h2>
+          <p className="subtitle">FutureCode — это современная платформа для обучения профессиям будущего</p>
+          <div className="stats">
+            <div className="stat">
+              <div className="number">10</div>
+              <div className="label">Направлений</div>
+              <div className="desc">Программирование, AI, 3D-дизайн и другие востребованные специальности</div>
+            </div>
+            <div className="stat">
+              <div className="number">5000+</div>
+              <div className="label">Студентов</div>
+              <div className="desc">Которые уже прошли наши курсы и добились успеха в профессии</div>
+            </div>
+            <div className="stat">
+              <div className="number">50</div>
+              <div className="label">Преподавателей</div>
+              <div className="desc">Практикующих экспертов из Google, NVIDIA и других топ-компаний</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Courses Section with interactive cards */}
-      <section id="courses" className="courses-section">
-        <div className="section-header">
-          <h2 className="section-title">Топовые курсы 2024</h2>
-          <p className="section-subtitle">
-            Программы, которые дают реальные навыки для работы в технологиях будущего
-          </p>
-        </div>
-        <div className="courses-grid">
-          {courses.map(course => (
-            <CourseCard 
-              key={course.id} 
-              {...course} 
-              slug={course.slug}
-              mousePosition={mousePosition}
-            />
-          ))}
-        </div>
-        <div className="section-footer">
-          <Link to="/courses" className="btn btn-gradient">
-            <span>Все курсы</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </Link>
+      {/* Courses Section */}
+      <section id="courses" className="courses-section" style={{ backgroundImage: `url(${bg3})` }}>
+        <div className="overlay" />
+        <div className="container">
+          <h2>Топовые курсы 2024</h2>
+          <p className="subtitle">Программы, которые дают реальные навыки для работы в технологиях будущего</p>
+          <div className="courses-grid">
+            {courses.map((course) => (
+              <CourseCard key={course.id} {...course} slug={course.slug} mousePosition={mousePosition} />
+            ))}
+          </div>
+          <div className="all-courses-link">
+            <Link to="/courses" className="btn btn-primary">
+              Все курсы →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Testimonials Section with 3D cards */}
+      {/* Testimonials Section */}
       <section id="testimonials" className="testimonials-section">
-        <div className="section-header">
-          <h2 className="section-title">Отзывы студентов</h2>
-          <p className="section-subtitle">
-            Что говорят наши выпускники о курсах и процессе обучения
-          </p>
-        </div>
-        <div className="testimonials-slider">
-          {testimonials.map(testimonial => (
-            <Testimonial 
-              key={testimonial.id} 
-              {...testimonial} 
-              mousePosition={mousePosition}
-            />
-          ))}
+        <Particles id="testimonials-particles" init={particlesInit} options={particlesOptions} />
+        <div className="overlay" />
+        <div className="container">
+          <h2>Отзывы студентов</h2>
+          <p className="subtitle">Что говорят наши выпускники о курсах и процессе обучения</p>
+          <div className="testimonials-list">
+            {testimonials.map((testimonial) => (
+              <Testimonial key={testimonial.id} {...testimonial} mousePosition={mousePosition} />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA Section with floating elements */}
+      {/* CTA Section */}
       <section className="cta-section">
-        <div className="cta-container">
-          <div className="cta-content">
-            <h2 className="cta-title">Готовы начать обучение?</h2>
-            <p className="cta-subtitle">
-              Оставьте заявку и получите консультацию по подбору курса
-            </p>
-            <form className="cta-form">
-              <div className="form-group">
-                <input 
-                  type="email" 
-                  placeholder="Ваш email" 
-                  className="form-input"
-                />
-                <button type="submit" className="btn btn-neon">
-                  Отправить
-                  <span className="neon-border"></span>
-                </button>
-              </div>
+        <div className="container cta-container">
+          <div className="cta-text">
+            <h2>Готовы начать обучение?</h2>
+            <p>Оставьте заявку и получите консультацию по подбору курса</p>
+            <form className="cta-form" onSubmit={(e) => e.preventDefault()}>
+              <input type="email" placeholder="Ваш email" required />
+              <button type="submit" className="btn btn-primary">
+                Отправить
+              </button>
             </form>
-          </div>
-          <div className="cta-visual">
-            <div className="floating-icon icon-1">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 7L12 12L21 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 12L12 17L21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 17L12 22L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <div className="floating-icon icon-2">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 7L12 12L21 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 12L12 17L21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 17L12 22L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <div className="floating-icon icon-3">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 7L12 12L21 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 12L12 17L21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 17L12 22L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
           </div>
         </div>
       </section>
 
       <Footer />
 
-      <style jsx global>{`
-        :root {
-          --color-primary: #6e45e2;
-          --color-secondary: #88d3ce;
-          --color-accent: #ff7e5f;
-          --color-dark: #1a1a2e;
-          --color-light: #f8f9fa;
-          --font-main: 'Inter', sans-serif;
-          --font-heading: 'Poppins', sans-serif;
-        }
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
 
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-        }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-
-        @keyframes holographic {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        .future-edu-app {
-          position: relative;
+        .gpt-style-homepage {
+          font-family: 'Inter', sans-serif;
+          background-color: #121214;
+          color: #c7c7cc;
+          min-height: 100vh;
           overflow-x: hidden;
-          font-family: var(--font-main);
-          color: #fff;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          scroll-behavior: smooth;
         }
 
-        .particles-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 0;
-          pointer-events: none;
-        }
-
-        /* Hero Section Styles */
+        /* Hero */
         .hero-section {
           position: relative;
-          min-height: 100vh;
+          min-height: 90vh;
           display: flex;
           align-items: center;
-          padding: 120px 0;
+          justify-content: center;
           overflow: hidden;
-          z-index: 1;
+          background: #121214;
+          padding: 0 20px;
+        }
+
+        .hero-banner {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-image: url(${bg2});
+          background-size: cover;
+          background-position: center;
+          filter: brightness(0.45);
+          transition: filter 0.3s ease, transform 0.3s ease;
+          z-index: 0;
+          border-radius: 0;
+        }
+
+        .hero-banner:hover {
+          filter: brightness(0.55);
+          transform: scale(1.05);
         }
 
         .hero-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 90%;
-          max-width: 1400px;
-          margin: 0 auto;
           position: relative;
+          max-width: 480px;
           z-index: 2;
+          color: #f0f0f5;
+          user-select: none;
+          text-shadow:
+            0 2px 4px rgba(0,0,0,0.7),
+            0 0 10px rgba(0,0,0,0.6);
+          display: flex;
+          flex-direction: column;
+          gap: 1.2rem;
+          font-weight: 600;
         }
 
-        .hero-text {
-          max-width: 600px;
-          transform: translate3d(var(--mouse-x), var(--mouse-y), 0);
-          transition: transform 0.3s ease-out;
+        .hero-content h1 {
+          font-weight: 900;
+          font-size: 3.8rem;
+          line-height: 1.1;
+          margin: 0;
         }
 
-        .hero-title {
-          font-size: 4.5rem;
-          font-weight: 800;
-          line-height: 1.2;
-          margin-bottom: 1.5rem;
-          font-family: var(--font-heading);
-          background: linear-gradient(90deg, #fff, var(--color-secondary));
+        .gradient-text {
+          background: linear-gradient(90deg, #7b61ff, #ff61b6);
           -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
           background-clip: text;
           color: transparent;
+          font-weight: 900;
+          letter-spacing: -0.04em;
         }
 
-        .title-word {
-          display: inline-block;
-          margin-right: 0.5em;
-        }
-
-        .title-word-1 { animation: float 6s ease-in-out infinite; }
-        .title-word-2 { animation: float 6s ease-in-out infinite 1s; }
-        .title-word-3 { animation: float 6s ease-in-out infinite 2s; }
-
-        .hero-subtitle {
-          font-size: 1.5rem;
+        .hero-content p {
+          font-size: 1.3rem;
           line-height: 1.6;
-          margin-bottom: 2.5rem;
-          opacity: 0.9;
-          max-width: 80%;
+          color: #d0d0d8;
+          margin: 0;
+          font-weight: 500;
         }
 
-        .hero-buttons {
+        .buttons {
           display: flex;
-          gap: 20px;
-          margin-top: 40px;
+          gap: 16px;
+          flex-wrap: wrap;
         }
+
+        /* Новые стили кнопок — в стиле GPT */
 
         .btn {
+          all: unset;
+          cursor: pointer;
+          user-select: none;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          padding: 16px 32px;
-          border-radius: 50px;
           font-weight: 600;
-          text-decoration: none;
-          transition: all 0.3s ease;
-          position: relative;
-          overflow: hidden;
-          border: none;
-          cursor: pointer;
-          font-size: 1.1rem;
-        }
-
-        .btn-holographic {
-          background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+          font-size: 1rem;
+          padding: 12px 28px;
+          border-radius: 9999px;
+          transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+          box-shadow: 0 0 0 1px rgba(255 255 255 / 0.1);
           color: white;
-          box-shadow: 0 10px 30px rgba(110, 69, 226, 0.5);
-          position: relative;
-        }
-
-        .btn-holographic-effect {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(
-            45deg,
-            rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0.1) 50%,
-            rgba(255,255,255,0) 100%
-          );
-          transform: rotate(30deg);
-          animation: holographic 3s linear infinite;
-        }
-
-        .btn-neon-outline {
-          background: transparent;
-          color: var(--color-secondary);
-          border: 2px solid var(--color-secondary);
-          box-shadow: 0 0 10px rgba(136, 211, 206, 0.3), 
-                      0 0 20px rgba(136, 211, 206, 0.2);
-          transition: all 0.3s ease;
-        }
-
-        .btn-neon-outline:hover {
-          box-shadow: 0 0 20px rgba(136, 211, 206, 0.5), 
-                      0 0 40px rgba(136, 211, 206, 0.3);
-          background: rgba(136, 211, 206, 0.1);
-        }
-
-        .hero-visual {
-          position: relative;
-          width: 500px;
-          height: 500px;
-        }
-
-        .floating-cube, .floating-pyramid, .floating-sphere {
-          position: absolute;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 10px;
-          box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          transform-style: preserve-3d;
-        }
-
-        .floating-cube {
-          width: 150px;
-          height: 150px;
-          top: 50px;
-          left: 50px;
-          animation: float 8s ease-in-out infinite;
-          transform: rotateX(45deg) rotateY(45deg);
-        }
-
-        .floating-pyramid {
-          width: 120px;
-          height: 120px;
-          top: 200px;
-          left: 250px;
-          animation: float 10s ease-in-out infinite 2s;
-          clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-        }
-
-        .floating-sphere {
-          width: 100px;
-          height: 100px;
-          top: 350px;
-          left: 100px;
-          border-radius: 50%;
-          animation: float 12s ease-in-out infinite 1s;
-        }
-
-        .scroll-indicator {
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          z-index: 10;
-        }
-
-        .mouse {
-          width: 30px;
-          height: 50px;
-          border: 2px solid rgba(255, 255, 255, 0.5);
-          border-radius: 15px;
-          display: flex;
-          justify-content: center;
-          padding-top: 10px;
-        }
-
-        .wheel {
-          width: 4px;
-          height: 10px;
-          background-color: rgba(255, 255, 255, 0.8);
-          border-radius: 2px;
-          animation: pulse 2s infinite;
-        }
-
-        .arrow-down {
-          width: 15px;
-          height: 15px;
-          border-right: 2px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 2px solid rgba(255, 255, 255, 0.8);
-          transform: rotate(45deg);
-          margin-top: 10px;
-          animation: pulse 2s infinite 0.5s;
-        }
-
-        /* Section common styles */
-        .section-header {
+          background: linear-gradient(90deg, #2a2a72, #009ffd);
           text-align: center;
-          margin-bottom: 60px;
-          max-width: 800px;
-          margin-left: auto;
-          margin-right: auto;
+          min-width: 140px;
+          user-select: none;
+          text-decoration: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        .btn:hover,
+        .btn:focus {
+          background: linear-gradient(90deg, #0050b3, #00c6ff);
+          box-shadow:
+            0 0 8px #00c6ff,
+            0 4px 16px rgb(0 198 255 / 0.5);
+          transform: translateY(-3px);
+          outline: none;
+        }
+        .btn:active {
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 6px #00a6d9,
+            0 2px 8px rgb(0 166 217 / 0.4);
         }
 
-        .section-title {
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 1rem;
-          font-family: var(--font-heading);
-          background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
+        /* btn-primary and btn-secondary remain for semantic usage but inherit .btn styles */
+        .btn-primary {
+          background: linear-gradient(90deg, #2a2a72, #009ffd);
+          color: white;
+        }
+        .btn-primary:hover,
+        .btn-primary:focus {
+          background: linear-gradient(90deg, #0050b3, #00c6ff);
         }
 
-        .section-subtitle {
-          font-size: 1.2rem;
-          opacity: 0.8;
-          line-height: 1.6;
+        .btn-secondary {
+          background: transparent;
+          color: #ccc;
+          box-shadow: 0 0 0 1px rgba(255 255 255 / 0.15);
+        }
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+          background: rgba(255 255 255 / 0.1);
+          box-shadow:
+            0 0 10px rgba(255 255 255 / 0.3),
+            0 4px 16px rgba(255 255 255 / 0.15);
+          color: white;
         }
 
         /* About Section */
         .about-section {
-          padding: 120px 0;
-          position: relative;
-          background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-          overflow: hidden;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 40px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .stat-card {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
-          padding: 40px 30px;
+          padding: 80px 0;
+          background-color: #18181b;
           text-align: center;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .stat-card:hover {
-          transform: translateY(-10px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .stat-number {
-          font-size: 4rem;
+        .about-section h2 {
           font-weight: 800;
-          color: var(--color-secondary);
+          font-size: 2.8rem;
           margin-bottom: 1rem;
-          font-family: var(--font-heading);
+          color: #e0e0e8;
+          user-select: none;
         }
 
-        .stat-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin-bottom: 1rem;
-          color: white;
+        .subtitle {
+          font-size: 1.15rem;
+          color: #9999aa;
+          margin-bottom: 48px;
+          user-select: none;
         }
 
-        .stat-description {
-          opacity: 0.8;
-          line-height: 1.6;
+        .stats {
+          display: flex;
+          justify-content: center;
+          gap: 48px;
+          flex-wrap: wrap;
+        }
+
+        .stat {
+          background-color: #222226;
+          border-radius: 14px;
+          padding: 36px 28px;
+          flex: 1 1 200px;
+          max-width: 280px;
+          box-shadow: 0 0 12px rgb(0 0 0 / 0.45);
+          transition: background-color 0.3s ease;
+          user-select: none;
+        }
+
+        .stat:hover {
+          background-color: #2a2a33;
+        }
+
+        .number {
+          font-weight: 900;
+          font-size: 3.2rem;
+          margin-bottom: 0.5rem;
+          color: #8b78ff;
+          user-select: text;
+          text-shadow: 0 0 5px #8b78ffaa;
+        }
+
+        .label {
+          font-weight: 700;
+          font-size: 1.3rem;
+          margin-bottom: 0.6rem;
+          color: #bbb;
+        }
+
+        .desc {
+          font-size: 1rem;
+          color: #888899;
+          line-height: 1.5;
         }
 
         /* Courses Section */
         .courses-section {
-          padding: 120px 0;
-          background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+          position: relative;
+          padding: 80px 0;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          color: #ccc;
+          font-weight: 500;
+        }
+
+        .courses-section .overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(18, 18, 20, 0.88);
+          z-index: 0;
+        }
+
+        .courses-section .container {
+          position: relative;
+          z-index: 1;
+        }
+
+        .courses-section h2 {
+          font-weight: 800;
+          font-size: 3rem;
+          margin-bottom: 0.5rem;
+          user-select: none;
+          color: #ddd;
+          text-shadow: 0 0 10px rgba(123, 97, 255, 0.7);
+        }
+
+        .courses-section .subtitle {
+          font-size: 1.2rem;
+          margin-bottom: 48px;
+          color: #a0a0bb;
+          user-select: none;
         }
 
         .courses-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 30px;
-          max-width: 1200px;
-          margin: 0 auto;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 36px;
         }
 
-        .section-footer {
+        .all-courses-link {
+          margin-top: 56px;
           text-align: center;
-          margin-top: 60px;
-        }
-
-        .btn-gradient {
-          background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-          color: white;
-          padding: 16px 40px;
-          border-radius: 50px;
-          font-weight: 600;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          box-shadow: 0 10px 30px rgba(110, 69, 226, 0.5);
-          transition: all 0.3s ease;
-        }
-
-        .btn-gradient:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 15px 40px rgba(110, 69, 226, 0.7);
         }
 
         /* Testimonials Section */
         .testimonials-section {
-          padding: 120px 0;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          position: relative;
+          padding: 80px 0 100px;
+          background-color: #121214;
+          color: #ccc;
+          overflow: hidden;
         }
 
-        .testimonials-slider {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 30px;
-          max-width: 1200px;
-          margin: 0 auto;
+        .testimonials-section .overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(18, 18, 20, 0.95);
+          z-index: 0;
+        }
+
+        .testimonials-section .container {
+          position: relative;
+          z-index: 1;
+        }
+
+        .testimonials-section h2 {
+          font-weight: 800;
+          font-size: 2.6rem;
+          margin-bottom: 0.3rem;
+          user-select: none;
+          color: #ddd;
+          text-shadow: 0 0 8px rgba(123, 97, 255, 0.8);
+        }
+
+        .testimonials-section .subtitle {
+          color: #8889aa;
+          font-size: 1.2rem;
+          margin-bottom: 40px;
+          user-select: none;
+        }
+
+        .testimonials-list {
+          display: flex;
+          gap: 28px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
 
         /* CTA Section */
         .cta-section {
-          padding: 120px 0;
-          position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+          background-color: #2e2e49;
+          padding: 60px 0;
+          text-align: center;
+          color: #ddd;
+          user-select: none;
         }
 
         .cta-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          position: relative;
-          z-index: 2;
-        }
-
-        .cta-content {
           max-width: 600px;
+          margin: 0 auto;
         }
 
-        .cta-title {
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 1.5rem;
-          color: white;
+        .cta-text h2 {
+          font-weight: 800;
+          font-size: 2.6rem;
+          margin-bottom: 0.8rem;
         }
 
-        .cta-subtitle {
+        .cta-text p {
           font-size: 1.2rem;
-          opacity: 0.9;
-          margin-bottom: 2rem;
-          line-height: 1.6;
+          margin-bottom: 30px;
+          color: #bbb;
+          font-weight: 500;
         }
 
         .cta-form {
-          max-width: 500px;
-        }
-
-        .form-group {
           display: flex;
-          gap: 10px;
+          justify-content: center;
+          gap: 16px;
+          flex-wrap: wrap;
         }
 
-        .form-input {
-          flex: 1;
+        .cta-form input[type='email'] {
           padding: 16px 24px;
-          border-radius: 50px;
+          border-radius: 9999px;
           border: none;
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(5px);
-          color: white;
-          font-size: 1rem;
-          transition: all 0.3s ease;
+          width: 320px;
+          max-width: 90vw;
+          font-size: 1.1rem;
+          background-color: #444459;
+          color: #eee;
+          outline-offset: 2px;
+          transition: background-color 0.3s ease;
+          font-weight: 500;
+          box-shadow: inset 0 0 6px rgb(0 0 0 / 0.7);
         }
 
-        .form-input::placeholder {
-          color: rgba(255, 255, 255, 0.7);
+        .cta-form input[type='email']::placeholder {
+          color: #9999aa;
         }
 
-        .form-input:focus {
-          outline: none;
-          background: rgba(255, 255, 255, 0.3);
-          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        .cta-form input[type='email']:focus {
+          background-color: #5858f7;
+          color: #fff;
+          box-shadow: 0 0 12px #7b61ffcc;
         }
 
-        .btn-neon {
-          background: white;
-          color: var(--color-primary);
-          font-weight: 600;
-          padding: 16px 32px;
-          border-radius: 50px;
-          position: relative;
-          overflow: hidden;
-          border: none;
+        .cta-form button {
+          /* Кнопка c тем же стилем btn-primary */
+          all: unset;
           cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .neon-border {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          border-radius: 50px;
-          border: 2px solid transparent;
-          background: linear-gradient(135deg, white, var(--color-secondary)) border-box;
-          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-          -webkit-mask-composite: destination-out;
-          mask-composite: exclude;
-          pointer-events: none;
-        }
-
-        .btn-neon:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
-        }
-
-        .cta-visual {
-          position: relative;
-          width: 400px;
-          height: 400px;
-        }
-
-        .floating-icon {
-          position: absolute;
-          width: 80px;
-          height: 80px;
-          display: flex;
+          user-select: none;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(5px);
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          font-weight: 600;
+          font-size: 1rem;
+          padding: 12px 28px;
+          border-radius: 9999px;
+          transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+          box-shadow: 0 0 0 1px rgba(255 255 255 / 0.1);
+          color: white;
+          background: linear-gradient(90deg, #2a2a72, #009ffd);
+          text-align: center;
+          min-width: 140px;
+          user-select: none;
+          text-decoration: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        .cta-form button:hover,
+        .cta-form button:focus {
+          background: linear-gradient(90deg, #0050b3, #00c6ff);
+          box-shadow:
+            0 0 8px #00c6ff,
+            0 4px 16px rgb(0 198 255 / 0.5);
+          transform: translateY(-3px);
+          outline: none;
+        }
+        .cta-form button:active {
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 6px #00a6d9,
+            0 2px 8px rgb(0 166 217 / 0.4);
         }
 
-        .floating-icon svg {
-          width: 40px;
-          height: 40px;
-          stroke: white;
-          stroke-width: 2;
-        }
-
-        .icon-1 {
-          top: 50px;
-          left: 50px;
-          animation: float 8s ease-in-out infinite;
-        }
-
-        .icon-2 {
-          top: 200px;
-          left: 200px;
-          animation: float 10s ease-in-out infinite 2s;
-        }
-
-        .icon-3 {
-          top: 300px;
-          left: 100px;
-          animation: float 12s ease-in-out infinite 1s;
-        }
-
-        /* Responsive adjustments */
+        /* Responsive */
         @media (max-width: 1024px) {
           .hero-content {
-            flex-direction: column;
-            text-align: center;
+            max-width: 380px;
           }
-
-          .hero-text {
-            margin-bottom: 60px;
-          }
-
-          .hero-subtitle {
-            max-width: 100%;
-          }
-
-          .hero-buttons {
-            justify-content: center;
-          }
-
-          .hero-visual {
-            width: 100%;
-            height: 400px;
-          }
-
-          .cta-container {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .cta-content {
-            margin-bottom: 60px;
-          }
-
-          .form-group {
-            flex-direction: column;
-          }
-
-          .cta-visual {
-            width: 100%;
-            height: 300px;
+          .courses-grid {
+            gap: 24px;
           }
         }
 
         @media (max-width: 768px) {
-          .hero-title {
-            font-size: 3rem;
+          .hero-section {
+            min-height: 70vh;
+            padding: 0 15px;
           }
 
-          .section-title {
-            font-size: 2rem;
+          .hero-content {
+            position: relative;
+            max-width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            top: auto;
+            left: auto;
+            transform: none;
+            color: #f0f0f5;
+            text-shadow:
+              0 2px 6px rgba(0,0,0,0.9);
           }
 
-          .stats-grid {
-            grid-template-columns: 1fr;
+          .hero-banner {
+            position: relative;
+            height: 50vh;
+            filter: brightness(0.6);
+            border-radius: 12px;
           }
 
-          .courses-grid {
-            grid-template-columns: 1fr;
+          .buttons {
+            justify-content: center;
+          }
+
+          .cta-form {
+            flex-direction: column;
+          }
+
+          .cta-form input[type='email'] {
+            width: 100%;
           }
         }
       `}</style>
