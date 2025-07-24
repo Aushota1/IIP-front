@@ -1,22 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CourseCard from '../components/CourseCard';
-import Testimonial from '../components/Testimonial';
-
+import TestimonialCarousel from '../components/TestimonialCarousel';
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import bg1 from '../assets/fon1.jpg';
-import bg2 from '../assets/fon1.jpg';
 import bg3 from '../assets/fon3.jpg';
-import bg4 from '../assets/fon4.jpg';
-
-// Регистрируем плагины GSAP
-gsap.registerPlugin(ScrollTrigger);
+import demoVideo from '../assets/code-demo.mp4';
 
 const courses = [
   {
@@ -43,7 +36,7 @@ const courses = [
     duration: '4 месяца',
     level: 'Средний',
     price: '24 900 ₽',
-    image: bg2,
+    image: bg1,
     highlights: [
       'Моделирование как в Pixar',
       'Проектирование умных устройств',
@@ -69,51 +62,135 @@ const courses = [
   },
 ];
 
-const testimonials = [
+const features = [
   {
     id: 1,
-    name: 'Анна Смирнова',
-    role: 'Веб-разработчик',
-    text: 'Курс по веб-разработке помог мне сменить профессию и найти работу мечты. Преподаватели — настоящие профессионалы!',
-    avatar: bg4,
+    title: 'Персонализированное обучение',
+    description: 'Адаптивная программа под ваш уровень и цели с ИИ-ассистентом',
+    icon: '🔍'
   },
   {
     id: 2,
-    name: 'Иван Петров',
-    role: 'UX/UI дизайнер',
-    text: 'Отличная подача материала, много практики. После курса собрал портфолио и получил первые заказы на фрилансе.',
-    avatar: bg4,
+    title: 'Реальные проекты',
+    description: 'Работа над кейсами от партнёров: Яндекс, VK, Tinkoff',
+    icon: '🚀'
   },
   {
     id: 3,
-    name: 'Елена Ковалева',
-    role: 'Маркетолог',
-    text: 'Практические кейсы из курса по маркетингу сразу применила в работе. Результаты не заставили себя ждать!',
-    avatar: bg4,
+    title: 'Карьерная поддержка',
+    description: 'Трудоустройство в топовые IT-компании после завершения курса',
+    icon: '💼'
   },
+  {
+    id: 4,
+    title: 'Сообщество',
+    description: 'Доступ к закрытому клубу выпускников и менторов',
+    icon: '👥'
+  }
+];
+
+const codeSnippets = [
+  `// Алгоритм Дейкстры на C++
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+const int INF = INT_MAX;
+
+void dijkstra(vector<vector<pair<int, int>>>& graph, 
+             int start, vector<int>& dist) {
+    dist.assign(graph.size(), INF);
+    dist[start] = 0;
+    
+    priority_queue<pair<int, int>, 
+                   vector<pair<int, int>>, 
+                   greater<pair<int, int>>> pq;
+    pq.push({0, start});
+    
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        int d = pq.top().first;
+        pq.pop();
+        
+        if (d != dist[u]) continue;
+        
+        for (auto& edge : graph[u]) {
+            int v = edge.first;
+            int w = edge.second;
+            
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+}`,
+  `// Генеративное создание 3D-модели
+import tensorflow as tf
+from tensorflow.keras.layers import Dense, Reshape
+from tensorflow.keras.models import Sequential
+
+def build_generator(latent_dim):
+    model = Sequential([
+        Dense(256, input_dim=latent_dim, activation='relu'),
+        Dense(512, activation='relu'),
+        Dense(1024, activation='relu'),
+        Dense(2048, activation='relu'),
+        Dense(4096, activation='sigmoid'),
+        Reshape((16, 16, 16, 1))
+    ])
+    return model
+
+# Создание генеративной модели
+latent_dim = 100
+generator = build_generator(latent_dim)
+generator.summary()`,
+  `// Оптимизированный SQL-запрос
+WITH user_activity AS (
+  SELECT 
+    user_id,
+    COUNT(DISTINCT session_id) AS sessions,
+    SUM(duration) AS total_time
+  FROM events
+  WHERE event_date BETWEEN NOW() - INTERVAL '7 days' AND NOW()
+  GROUP BY user_id
+)
+SELECT 
+  u.id,
+  u.name,
+  u.email,
+  ua.sessions,
+  ua.total_time,
+  CASE 
+    WHEN ua.total_time > 300 THEN 'Активный'
+    WHEN ua.total_time > 60 THEN 'Средний'
+    ELSE 'Низкий'
+  END AS activity_level
+FROM users u
+JOIN user_activity ua ON u.id = ua.user_id
+WHERE ua.sessions > 3
+ORDER BY ua.total_time DESC
+LIMIT 100;`
 ];
 
 const particlesOptions = {
-  fpsLimit: 120,
+  fpsLimit: 60,
   interactivity: {
     events: {
-      onHover: { 
-        enable: true, 
-        mode: "repulse",
-        parallax: {
-          enable: true,
-          force: 60,
-          smooth: 10
-        }
+      onHover: {
+        enable: true,
+        mode: "grab",
       },
-      onClick: { enable: false },
       resize: true,
     },
     modes: {
-      repulse: { 
-        distance: 100, 
-        duration: 0.4,
-        speed: 0.5
+      grab: {
+        distance: 140,
+        line_linked: {
+          opacity: 0.3
+        }
       }
     }
   },
@@ -121,7 +198,7 @@ const particlesOptions = {
     color: { value: "#ffffff" },
     links: {
       color: "#ffffff",
-      distance: 150,
+      distance: 120,
       enable: true,
       opacity: 0.2,
       width: 1
@@ -129,188 +206,150 @@ const particlesOptions = {
     collisions: { enable: false },
     move: {
       enable: true,
-      speed: 0.5,
+      speed: 1,
       direction: "none",
       random: true,
       straight: false,
-      outModes: { default: "bounce" }
-    },
-    number: { 
-      value: 80, 
-      density: { 
-        enable: true, 
-        area: 800 
-      } 
-    },
-    opacity: { value: 0.3 },
-    shape: { type: "circle" },
-    size: { 
-      value: { min: 1, max: 3 },
-      animation: {
+      out_mode: "bounce",
+      bounce: false,
+      attract: {
         enable: true,
-        speed: 3,
+        rotateX: 600,
+        rotateY: 1200
+      }
+    },
+    number: {
+      density: {
+        enable: true,
+        area: 800
+      },
+      value: 60
+    },
+    opacity: {
+      value: 0.3,
+      random: true,
+      anim: {
+        enable: true,
+        speed: 1,
+        opacity_min: 0.1,
+        sync: false
+      }
+    },
+    shape: {
+      type: "circle"
+    },
+    size: {
+      value: 2,
+      random: true,
+      anim: {
+        enable: true,
+        speed: 2,
+        size_min: 0.3,
         sync: false
       }
     }
   },
-  detectRetina: true,
+  detectRetina: true
+};
+
+// Компонент для анимированного отображения кода
+const TypingCodeBlock = ({ code, language }) => {
+  const [displayedCode, setDisplayedCode] = useState('');
+  const [currentLine, setCurrentLine] = useState(0);
+  const [currentChar, setCurrentChar] = useState(0);
+  const lines = code.split('\n');
+  const typingSpeed = 30;
+  const lineDelay = 300;
+  
+  useEffect(() => {
+    setDisplayedCode('');
+    setCurrentLine(0);
+    setCurrentChar(0);
+  }, [code]);
+
+  useEffect(() => {
+    if (currentLine >= lines.length) return;
+
+    const timer = setTimeout(() => {
+      if (currentChar < lines[currentLine].length) {
+        // Добавляем следующий символ
+        setDisplayedCode(prev => {
+          const linesArr = prev.split('\n');
+          if (!linesArr[currentLine]) {
+            linesArr[currentLine] = '';
+          }
+          linesArr[currentLine] = lines[currentLine].substring(0, currentChar + 1);
+          return linesArr.join('\n');
+        });
+        setCurrentChar(prev => prev + 1);
+      } else {
+        // Переходим на следующую строку
+        if (currentLine < lines.length - 1) {
+          setDisplayedCode(prev => prev + '\n');
+          setCurrentLine(prev => prev + 1);
+          setCurrentChar(0);
+        }
+      }
+    }, currentChar < lines[currentLine].length ? typingSpeed : lineDelay);
+
+    return () => clearTimeout(timer);
+  }, [currentLine, currentChar, lines, code]);
+
+  return (
+    <pre>
+      <code className={`language-${language}`}>
+        {displayedCode}
+        <span className="cursor">|</span>
+      </code>
+    </pre>
+  );
 };
 
 const Home = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeCodeIndex, setActiveCodeIndex] = useState(0);
+  const intervalRef = useRef(null);
   
-  // Refs для анимаций
-  const heroRef = useRef(null);
-  const aboutRef = useRef(null);
-  const coursesRef = useRef(null);
-  const testimonialsRef = useRef(null);
-  const ctaRef = useRef(null);
-
-  useEffect(() => {
-    // Инициализация анимаций при скролле
-    const setupAnimations = () => {
-      // Hero section animation
-      gsap.from(heroRef.current.querySelectorAll('h1, p, .buttons'), {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out"
-      });
-
-      // About section animation
-      gsap.from(aboutRef.current.querySelectorAll('h2, .subtitle'), {
-        scrollTrigger: {
-          trigger: aboutRef.current,
-          start: "top 80%",
-        },
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)"
-      });
-
-      gsap.from(aboutRef.current.querySelectorAll('.stat'), {
-        scrollTrigger: {
-          trigger: aboutRef.current,
-          start: "top 70%",
-        },
-        opacity: 0,
-        y: 80,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power2.out",
-        delay: 0.3
-      });
-
-      // Courses section animation
-      gsap.from(coursesRef.current.querySelectorAll('h2, .subtitle'), {
-        scrollTrigger: {
-          trigger: coursesRef.current,
-          start: "top 80%",
-        },
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)"
-      });
-
-      gsap.from(coursesRef.current.querySelectorAll('.course-card'), {
-        scrollTrigger: {
-          trigger: coursesRef.current,
-          start: "top 70%",
-        },
-        opacity: 0,
-        y: 100,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out",
-        delay: 0.3
-      });
-
-      // Testimonials section animation
-      gsap.from(testimonialsRef.current.querySelectorAll('h2, .subtitle'), {
-        scrollTrigger: {
-          trigger: testimonialsRef.current,
-          start: "top 80%",
-        },
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)"
-      });
-
-      gsap.from(testimonialsRef.current.querySelectorAll('.testimonial-card'), {
-        scrollTrigger: {
-          trigger: testimonialsRef.current,
-          start: "top 70%",
-        },
-        opacity: 0,
-        y: 100,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out",
-        delay: 0.3
-      });
-
-      // CTA section animation
-      gsap.from(ctaRef.current.querySelectorAll('h2, p, form'), {
-        scrollTrigger: {
-          trigger: ctaRef.current,
-          start: "top 80%",
-        },
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)"
-      });
-    };
-
-    const onMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
-    const onScroll = () => {
-      const sections = ['home', 'about', 'courses', 'testimonials'];
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('scroll', onScroll);
-    
-    // Инициализируем анимации после загрузки
-    setupAnimations();
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('scroll', onScroll);
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
-  }, []);
-
   const particlesInit = async (main) => { 
     await loadFull(main); 
   };
 
+  // Автоматическое переключение вкладок
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setActiveCodeIndex(prev => (prev + 1) % codeSnippets.length);
+    }, 8000); // Переключаем каждые 8 секунд
+    
+    return () => clearInterval(intervalRef.current);
+  }, []);
+  
+  // Сброс автоматического переключения при ручном изменении
+  const resetTyping = () => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setActiveCodeIndex(prev => (prev + 1) % codeSnippets.length);
+    }, 8000);
+  };
+
   return (
     <div className="modern-homepage">
-      <Header activeSection={activeSection} />
+      <Header />
 
       {/* Hero Section */}
-      <section id="home" className="hero-section" ref={heroRef}>
-        <Particles id="hero-particles" init={particlesInit} options={particlesOptions} />
-        <div className="hero-content">
+      <section id="home" className="hero-section">
+        <Particles 
+          id="hero-particles" 
+          init={particlesInit} 
+          options={particlesOptions} 
+          style={{ 
+          position: 'absolute', 
+          zIndex: 1,
+          height: '100vh', // Ограничиваем высоту частиц высотой экрана
+          top: 0,
+          left: 0,
+          right: 0
+          }}
+        />
+        <div className="hero-content" style={{ position: 'relative', zIndex: 2 }}>
           <div className="hero-text">
             <h1>
               <span className="hero-line">Образование</span>
@@ -338,43 +377,147 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <div className="scroll-indicator">
-          <div className="mouse">
-            <div className="wheel"></div>
+      </section>
+
+      {/* Video Section */}
+      <section id="video" className="video-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Как мы учим?</h2>
+            <p className="section-subtitle">Погружение в практику с первого дня обучения</p>
           </div>
-          <span>Листайте вниз</span>
+          <div className="video-wrapper">
+            <video 
+              src={demoVideo} 
+              autoPlay 
+              muted 
+              loop 
+              playsInline
+              className="demo-video"
+            ></video>
+            <div className="video-overlay"></div>
+          </div>
+          <div className="video-features">
+            <div className="feature">
+              <div className="icon">🎯</div>
+              <div className="text">Интенсивная практика</div>
+            </div>
+            <div className="feature">
+              <div className="icon">👨‍🏫</div>
+              <div className="text">Персональный ментор</div>
+            </div>
+            <div className="feature">
+              <div className="icon">🤝</div>
+              <div className="text">Работа в команде</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="about-section" ref={aboutRef}>
+      {/* Features Section */}
+      <section id="features" className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">О нашей школе</h2>
-            <p className="section-subtitle">FutureCode — это современная платформа для обучения профессиям будущего</p>
+            <h2 className="section-title">Почему выбирают нас</h2>
+            <p className="section-subtitle">Преимущества, которые делают обучение эффективным</p>
           </div>
-          <div className="stats">
-            <div className="stat">
-              <div className="number" data-count="10">0</div>
-              <div className="label">Направлений</div>
-              <div className="desc">Программирование, AI, 3D-дизайн и другие востребованные специальности</div>
+          <div className="features-grid">
+            {features.map(feature => (
+              <div key={feature.id} className="feature-card">
+                <div className="feature-icon">{feature.icon}</div>
+                <h3 className="feature-title">{feature.title}</h3>
+                <p className="feature-description">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Code Section */}
+      <section id="code" className="code-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Пишем код вместе</h2>
+            <p className="section-subtitle">Реальные примеры из наших курсов</p>
+          </div>
+          <div className="code-content">
+            <div className="code-description">
+              <h3>Интерактивное обучение</h3>
+              <p>Наши курсы построены на практике. С первого дня вы пишете код, решаете задачи и создаёте проекты.</p>
+              
+              <div className="code-tabs">
+                <button 
+                  className={`tab ${activeCodeIndex === 0 ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveCodeIndex(0);
+                    resetTyping();
+                  }}
+                >
+                  Алгоритмы
+                </button>
+                <button 
+                  className={`tab ${activeCodeIndex === 1 ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveCodeIndex(1);
+                    resetTyping();
+                  }}
+                >
+                  ИИ/ML
+                </button>
+                <button 
+                  className={`tab ${activeCodeIndex === 2 ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveCodeIndex(2);
+                    resetTyping();
+                  }}
+                >
+                  Базы данных
+                </button>
+              </div>
+              
+              <div className="code-benefits">
+                <div className="benefit">
+                  <div className="icon">✅</div>
+                  <div className="text">Разбор сложных алгоритмов</div>
+                </div>
+                <div className="benefit">
+                  <div className="icon">✅</div>
+                  <div className="text">Оптимизация производительности</div>
+                </div>
+                <div className="benefit">
+                  <div className="icon">✅</div>
+                  <div className="text">Лучшие практики кодирования</div>
+                </div>
+              </div>
             </div>
-            <div className="stat">
-              <div className="number" data-count="5000">0+</div>
-              <div className="label">Студентов</div>
-              <div className="desc">Которые уже прошли наши курсы и добились успеха в профессии</div>
-            </div>
-            <div className="stat">
-              <div className="number" data-count="50">0</div>
-              <div className="label">Преподавателей</div>
-              <div className="desc">Практикующих экспертов из Google, NVIDIA и других топ-компаний</div>
+            
+            <div className="code-editor">
+              <div className="editor-header">
+                <div className="editor-dots">
+                  <span className="dot red"></span>
+                  <span className="dot yellow"></span>
+                  <span className="dot green"></span>
+                </div>
+                <div className="editor-title">code_snippet_{activeCodeIndex + 1}.{activeCodeIndex === 0 ? 'cpp' : activeCodeIndex === 1 ? 'py' : 'sql'}</div>
+              </div>
+              <div className="editor-body">
+                <TypingCodeBlock 
+                  code={codeSnippets[activeCodeIndex]} 
+                  language={
+                    activeCodeIndex === 0 ? 'cpp' : 
+                    activeCodeIndex === 1 ? 'python' : 
+                    'sql'
+                  } 
+                  key={activeCodeIndex} // Важно для сброса анимации при смене вкладки
+                />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Courses Section */}
-      <section id="courses" className="courses-section" ref={coursesRef}>
+      <section id="courses" className="courses-section">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Топовые курсы 2024</h2>
@@ -386,7 +529,6 @@ const Home = () => {
                 key={course.id} 
                 {...course} 
                 slug={course.slug} 
-                mousePosition={mousePosition} 
                 className="course-card"
               />
             ))}
@@ -401,28 +543,19 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="testimonials-section" ref={testimonialsRef}>
-        <Particles id="testimonials-particles" init={particlesInit} options={particlesOptions} />
-        <div className="container">
+      <section id="testimonials" className="testimonials-section">
+        <div className="testimonials-overlay"></div>
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="section-header">
-            <h2 className="section-title">Отзывы студентов</h2>
-            <p className="section-subtitle">Что говорят наши выпускники о курсах и процессе обучения</p>
+            <h2 className="section-title">Истории успеха</h2>
+            <p className="section-subtitle">Наши выпускники работают в ведущих IT-компаниях</p>
           </div>
-          <div className="testimonials-list">
-            {testimonials.map((testimonial) => (
-              <Testimonial 
-                key={testimonial.id} 
-                {...testimonial} 
-                mousePosition={mousePosition} 
-                className="testimonial-card"
-              />
-            ))}
-          </div>
+          <TestimonialCarousel />
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section" ref={ctaRef}>
+      <section className="cta-section">
         <div className="container">
           <div className="cta-content">
             <h2 className="cta-title">Готовы начать обучение?</h2>
@@ -450,22 +583,23 @@ const Home = () => {
           color: #e0e0e0;
           min-height: 100vh;
           overflow-x: hidden;
-          scroll-behavior: smooth;
           line-height: 1.6;
         }
 
-        /* Общие стили */
         .container {
           width: 100%;
           max-width: 1200px;
           margin: 0 auto;
           padding: 0 20px;
           box-sizing: border-box;
+          position: relative;
         }
 
         .section-header {
           text-align: center;
           margin-bottom: 60px;
+          position: relative;
+          z-index: 2;
         }
 
         .section-title {
@@ -478,6 +612,7 @@ const Home = () => {
           background-clip: text;
           color: transparent;
           line-height: 1.2;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         .section-subtitle {
@@ -486,6 +621,7 @@ const Home = () => {
           max-width: 700px;
           margin: 0 auto;
           font-weight: 500;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
 
         /* Hero Section */
@@ -497,6 +633,7 @@ const Home = () => {
           justify-content: center;
           padding: 120px 0 80px;
           overflow: hidden;
+          background: linear-gradient(135deg, #121216 0%, #0a0a0a 100%);
         }
 
         .hero-content {
@@ -504,8 +641,6 @@ const Home = () => {
           align-items: center;
           justify-content: space-between;
           gap: 40px;
-          position: relative;
-          z-index: 2;
         }
 
         .hero-text {
@@ -523,7 +658,6 @@ const Home = () => {
           position: relative;
           border-radius: 16px;
           overflow: hidden;
-          transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
@@ -531,7 +665,6 @@ const Home = () => {
           width: 100%;
           height: auto;
           display: block;
-          transition: transform 0.5s ease;
         }
 
         .image-overlay {
@@ -540,14 +673,13 @@ const Home = () => {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(45deg, rgba(123, 97, 255, 0.2), rgba(255, 97, 182, 0.1));
+          background: linear-gradient(45deg, rgba(18, 18, 22, 0.6), rgba(10, 10, 10, 0.4));
           mix-blend-mode: overlay;
         }
 
         .hero-line {
           display: block;
-          opacity: 0;
-          transform: translateY(20px);
+          text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         .hero-subtitle {
@@ -557,128 +689,260 @@ const Home = () => {
           max-width: 500px;
           font-weight: 500;
           line-height: 1.6;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
 
-        .scroll-indicator {
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          z-index: 10;
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 0.9rem;
-          animation: bounce 2s infinite;
-        }
-
-        .mouse {
-          width: 24px;
-          height: 40px;
-          border: 2px solid rgba(255, 255, 255, 0.5);
-          border-radius: 12px;
-          margin-bottom: 8px;
+        /* Video Section */
+        .video-section {
+          padding: 120px 0;
+          background: linear-gradient(180deg, #121216 0%, #0a0a0a 100%);
           position: relative;
         }
 
-        .wheel {
-          width: 4px;
-          height: 8px;
-          background: rgba(255, 255, 255, 0.8);
-          border-radius: 2px;
+        .video-wrapper {
+          position: relative;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .demo-video {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        .video-overlay {
           position: absolute;
-          top: 6px;
-          left: 50%;
-          transform: translateX(-50%);
-          animation: scroll 2s infinite;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(45deg, rgba(18, 18, 22, 0.5), rgba(10, 10, 10, 0.3));
+          pointer-events: none;
         }
 
-        @keyframes scroll {
-          0% { top: 6px; opacity: 1; }
-          50% { top: 18px; opacity: 0.5; }
-          100% { top: 6px; opacity: 1; }
+        .video-features {
+          display: flex;
+          justify-content: center;
+          gap: 40px;
+          margin-top: 40px;
         }
 
-        @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
-          40% { transform: translateY(-10px) translateX(-50%); }
-          60% { transform: translateY(-5px) translateX(-50%); }
+        .feature {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(30, 30, 35, 0.8);
+          padding: 12px 24px;
+          border-radius: 50px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(123, 97, 255, 0.3);
         }
 
-        /* About Section */
-        .about-section {
+        .feature .icon {
+          font-size: 1.5rem;
+        }
+
+        .feature .text {
+          font-weight: 600;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Features Section */
+        .features-section {
           padding: 120px 0;
           background: linear-gradient(180deg, #0a0a0a 0%, #121216 100%);
           position: relative;
         }
 
-        .stats {
+        .features-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 30px;
-          margin-top: 60px;
         }
 
-        .stat {
-          background: rgba(30, 30, 35, 0.6);
+        .feature-card {
+          background: rgba(30, 30, 35, 0.8);
           border-radius: 16px;
           padding: 40px 30px;
           backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          transition: all 0.3s ease;
           text-align: center;
         }
 
-        .stat:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 10px 30px rgba(123, 97, 255, 0.2);
-          border-color: rgba(123, 97, 255, 0.3);
+        .feature-icon {
+          font-size: 3rem;
+          margin-bottom: 20px;
         }
 
-        .number {
-          font-family: 'Inter', sans-serif;
-          font-weight: 800;
-          font-size: 3.5rem;
-          margin-bottom: 12px;
-          background: linear-gradient(90deg, #7b61ff, #ff61b6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          color: transparent;
-          line-height: 1;
-        }
-
-        .label {
+        .feature-title {
+          font-size: 1.5rem;
           font-weight: 700;
-          font-size: 1.3rem;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
           color: #e0e0ff;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
-        .desc {
-          font-size: 1rem;
+        .feature-description {
+          font-size: 1.1rem;
           color: #a0a0bb;
           line-height: 1.6;
         }
 
-        /* Courses Section */
-        .courses-section {
+        /* Code Section */
+        .code-section {
           padding: 120px 0;
           background: linear-gradient(180deg, #121216 0%, #0a0a0a 100%);
           position: relative;
           overflow: hidden;
         }
 
-        .courses-section::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle at center, rgba(123, 97, 255, 0.1) 0%, transparent 70%);
-          z-index: 0;
+        .code-content {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 50px;
+          align-items: center;
+        }
+
+        .code-description {
+          padding-right: 20px;
+        }
+
+        .code-description h3 {
+          font-size: 1.8rem;
+          margin-bottom: 20px;
+          color: #ffffff;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .code-description p {
+          font-size: 1.1rem;
+          color: #a0a0bb;
+          margin-bottom: 30px;
+          line-height: 1.7;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .code-tabs {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 30px;
+        }
+
+        .tab {
+          background: rgba(30, 30, 35, 0.8);
+          border: 1px solid rgba(123, 97, 255, 0.3);
+          color: #a0a0bb;
+          padding: 10px 20px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
+        .tab.active {
+          background: linear-gradient(90deg, #7b61ff, #ff61b6);
+          color: white;
+          border-color: transparent;
+        }
+
+        .code-benefits {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .benefit {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .benefit .icon {
+          font-size: 1.2rem;
+        }
+
+        .benefit .text {
+          font-size: 1.1rem;
+          color: #e0e0e0;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .code-editor {
+          background: #1e1e1e;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+          height: 400px;
+          border: 1px solid rgba(123, 97, 255, 0.3);
+        }
+
+        .editor-header {
+          display: flex;
+          align-items: center;
+          padding: 12px 20px;
+          background: #252526;
+          border-bottom: 1px solid #3c3c3c;
+        }
+
+        .editor-dots {
+          display: flex;
+          gap: 6px;
+          margin-right: 12px;
+        }
+
+        .dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+        }
+
+        .dot.red {
+          background: #ff5f56;
+        }
+
+        .dot.yellow {
+          background: #ffbd2e;
+        }
+
+        .dot.green {
+          background: #27c93f;
+        }
+
+        .editor-title {
+          color: #a0a0a0;
+          font-size: 0.9rem;
+          font-family: 'Consolas', monospace;
+        }
+
+        .editor-body {
+          height: calc(100% - 45px);
+          overflow: auto;
+          padding: 15px;
+          font-family: 'Consolas', 'Courier New', monospace;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          color: #e0e0e0;
+          position: relative;
+        }
+
+        /* Анимация курсора */
+        .cursor {
+          animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+
+        /* Courses Section */
+        .courses-section {
+          padding: 120px 0;
+          background: linear-gradient(180deg, #0a0a0a 0%, #121216 100%);
+          position: relative;
         }
 
         .courses-grid {
@@ -695,14 +959,18 @@ const Home = () => {
         /* Testimonials Section */
         .testimonials-section {
           padding: 120px 0;
-          background: linear-gradient(180deg, #0a0a0a 0%, #121216 100%);
+          background: linear-gradient(180deg, #121216 0%, #0a0a0a 100%);
           position: relative;
         }
-
-        .testimonials-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 30px;
+        
+        .testimonials-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(10, 10, 10, 0.7);
+          z-index: 1;
         }
 
         /* CTA Section */
@@ -739,12 +1007,14 @@ const Home = () => {
           font-weight: 800;
           margin-bottom: 16px;
           color: white;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .cta-subtitle {
           font-size: 1.2rem;
           margin-bottom: 40px;
           color: rgba(255, 255, 255, 0.9);
+          text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .cta-form {
@@ -764,7 +1034,6 @@ const Home = () => {
           background: rgba(255, 255, 255, 0.2);
           color: white;
           backdrop-filter: blur(10px);
-          transition: all 0.3s ease;
         }
 
         .cta-form input[type='email']::placeholder {
@@ -787,8 +1056,6 @@ const Home = () => {
           font-weight: 600;
           font-size: 1rem;
           text-decoration: none;
-          transition: all 0.3s ease;
-          cursor: pointer;
           border: none;
           outline: none;
           position: relative;
@@ -798,30 +1065,12 @@ const Home = () => {
 
         .btn-icon {
           margin-left: 8px;
-          transition: transform 0.3s ease;
-        }
-
-        .btn:hover .btn-icon {
-          transform: translateX(4px);
-        }
-
-        .btn-secondary:hover .btn-icon {
-          transform: translateY(4px);
         }
 
         .btn-primary {
           background: linear-gradient(90deg, #7b61ff, #ff61b6);
           color: white;
           box-shadow: 0 4px 15px rgba(123, 97, 255, 0.4);
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 25px rgba(123, 97, 255, 0.5);
-        }
-
-        .btn-primary:active {
-          transform: translateY(0);
         }
 
         .btn-secondary {
@@ -831,35 +1080,11 @@ const Home = () => {
           border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .btn-secondary:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: translateY(-3px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
         .btn-outline {
           background: transparent;
           color: #7b61ff;
           border: 2px solid #7b61ff;
           padding: 12px 28px;
-        }
-
-        .btn-outline:hover {
-          background: rgba(123, 97, 255, 0.1);
-          color: #7b61ff;
-          transform: translateY(-3px);
-        }
-
-        /* Анимации */
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
         }
 
         /* Адаптивность */
@@ -888,6 +1113,15 @@ const Home = () => {
           .section-title {
             font-size: 2.4rem;
           }
+
+          .code-content {
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+
+          .code-description {
+            padding-right: 0;
+          }
         }
 
         @media (max-width: 768px) {
@@ -904,17 +1138,13 @@ const Home = () => {
             max-width: 100%;
           }
 
-          .stats {
-            grid-template-columns: 1fr;
+          .video-features {
+            flex-wrap: wrap;
+            justify-content: center;
           }
 
-          .cta-form {
-            flex-direction: column;
-            gap: 12px;
-          }
-
-          .cta-form input[type='email'] {
-            min-width: 100%;
+          .code-editor {
+            height: 350px;
           }
         }
 
@@ -929,10 +1159,22 @@ const Home = () => {
 
           .btn {
             width: 100%;
+            margin-bottom: 10px;
           }
 
           .buttons {
             width: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .cta-form {
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .cta-form input[type='email'] {
+            min-width: 100%;
           }
         }
       `}</style>
