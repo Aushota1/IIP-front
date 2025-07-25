@@ -160,3 +160,25 @@ export const verifyEmail = async (email, code) => {
   const response = await api.post('/auth/verify-email', { email, code });
   return response.data;
 };
+
+
+// Получить список всех задач
+export const getTasks = async () => {
+  const response = await api.get('/tasks');
+  return response.data;
+};
+
+// Получить задачу по ID
+export const getTaskById = async (taskId) => {
+  const response = await api.get(`/tasks/${taskId}`);
+  return response.data;
+};
+
+// Запустить код по задаче с id taskId
+export const runTaskCode = async (taskId, code) => {
+  const response = await api.post(`/tasks/${taskId}/run`, { 
+    code: code, 
+    language: "python" 
+  });
+  return response.data;
+};

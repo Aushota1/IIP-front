@@ -25,6 +25,8 @@ const Sidebar = () => {
           <Link to="/" onClick={() => setIsOpen(false)}>🏠 Главная</Link>
           <Link to="/profile" onClick={() => setIsOpen(false)}>👤 Профиль</Link>
           <Link to="/courses" onClick={() => setIsOpen(false)}>📚 Курсы</Link>
+          <Link to="/tasks" onClick={() => setIsOpen(false)}>📝 Задачи</Link>
+
           <button onClick={handleLogout}>🚪 Выход</button>
         </nav>
       </div>
