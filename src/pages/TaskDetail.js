@@ -1,6 +1,180 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { getTaskById, runTaskCode } from "../api";
+import { getTaskById, runTaskCode, getTaskLeaderboard, isTaskSolved } from "../api";
+
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Tooltip,
+} from "recharts";
+
+// Кастомный тултип с аватаром пользователя
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          backgroundColor: "#252526",
+          color: "#d4d4d4",
+          padding: 12,
+          borderRadius: 12,
+          boxShadow: "0 0 15px #007accbb",
+          fontFamily: "'Fira Code', monospace",
+          fontSize: 14,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          minWidth: 220,
+          userSelect: "none",
+          pointerEvents: "none",
+        }}
+      >
+        <img
+          src={data.user_avatar || "https://via.placeholder.com/40?text=?"}
+          alt={data.user_name || "User avatar"}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: "2px solid #007acc",
+            objectFit: "cover",
+            flexShrink: 0,
+          }}
+          loading="lazy"
+        />
+        <div>
+          <div style={{ fontWeight: "700", fontSize: 16, marginBottom: 4 }}>
+            {data.user_name || "Anonymous"}
+          </div>
+          <div>
+            <span style={{ color: "#0e8f55", fontWeight: "700" }}>Runtime:</span>{" "}
+            {data.runtime?.toFixed(4)} sec
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              color: data.isBest ? "#00bfff" : data.passed ? "#0e8f55" : "#f44747",
+              fontWeight: "700",
+            }}
+          >
+            {data.passed ? "✔️ Passed" : "❌ Failed"}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+function RuntimeMemoryChart({ leaderboard }) {
+  if (!leaderboard || leaderboard.length === 0) return null;
+
+  // Найдем минимальное время среди всех
+  const bestRuntime = leaderboard
+    .filter((e) => e.best_runtime != null)
+    .reduce((min, e) => (e.best_runtime < min ? e.best_runtime : min), Infinity);
+
+  // Формируем данные для графика: runtime для каждого пользователя
+  const data = leaderboard.map((entry, i) => ({
+    name: entry.user_name || `#${i + 1}`,
+    runtime: entry.best_runtime || 0,
+    passed: entry.best_runtime != null, // считаем, что наличие времени - значит прошел
+    user_name: entry.user_name || "Anonymous",
+    user_avatar: entry.avatar_url || null,
+    isBest: entry.best_runtime === bestRuntime,
+  }));
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: 320,
+        backgroundColor: "#1e1e1e",
+        borderRadius: 16,
+        boxShadow: "0 0 40px #007acccc",
+        padding: 24,
+        marginBottom: 24,
+        userSelect: "none",
+      }}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} barCategoryGap={24} barGap={12}>
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "#007acc22", radius: 12 }} />
+
+          {/* Свечки runtime */}
+          <Bar
+            dataKey="runtime"
+            radius={[12, 12, 12, 12]}
+            barSize={24}
+            maxBarSize={36}
+            isAnimationActive={true}
+            animationDuration={900}
+            fill="#0e8f55"
+            // Цвет и ширина для лучшего runtime (подсветка)
+            shape={({ x, y, width, height, payload }) => {
+              const isBest = payload.isBest;
+              const barWidth = isBest ? 36 : 24;
+              const fillColor = isBest ? "#00bfff" : "#0e8f55";
+              return (
+                <rect
+                  x={x + (width - barWidth) / 2}
+                  y={y}
+                  width={barWidth}
+                  height={height}
+                  rx={12}
+                  ry={12}
+                  fill={fillColor}
+                />
+              );
+            }}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// Вкладки навигации
+function Tabs({ tabs, current, onChange }) {
+  return (
+    <nav
+      role="tablist"
+      aria-label="Task navigation"
+      style={{
+        display: "flex",
+        gap: 16,
+        borderBottom: "2px solid #007acc",
+        marginBottom: 20,
+        userSelect: "none",
+      }}
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          role="tab"
+          aria-selected={current === tab.id}
+          onClick={() => onChange(tab.id)}
+          style={{
+            cursor: "pointer",
+            padding: "12px 20px",
+            fontWeight: current === tab.id ? 700 : 500,
+            fontSize: 16,
+            background: current === tab.id ? "#007acc" : "transparent",
+            color: current === tab.id ? "#fff" : "#61dafb",
+            border: "none",
+            borderRadius: "8px 8px 0 0",
+            boxShadow: current === tab.id ? "0 0 12px #007accbb" : "none",
+            transition: "background 0.3s ease",
+          }}
+        >
+          {tab.title}
+        </button>
+      ))}
+    </nav>
+  );
+}
 
 export default function TaskDetail() {
   const { taskId } = useParams();
@@ -8,38 +182,81 @@ export default function TaskDetail() {
   const [task, setTask] = useState(null);
   const [codeWithHeader, setCodeWithHeader] = useState("");
   const [results, setResults] = useState(null);
+  const [leaderboard, setLeaderboard] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTestIndex, setActiveTestIndex] = useState(0);
-  const [theme, setTheme] = useState("dark");
+  const [activeTab, setActiveTab] = useState("description");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSolved, setIsSolved] = useState(false);
+
+  const textareaRef = useRef(null);
+
+  // Функция загрузки лидерборда с учётом токена
+  async function fetchLeaderboard(taskId) {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const lb = await getTaskLeaderboard(taskId, token);
+      if (lb && lb.leaderboard) {
+        const sorted = lb.leaderboard
+          .filter((e) => e.best_runtime != null)
+          .sort((a, b) => a.best_runtime - b.best_runtime);
+        setLeaderboard(sorted);
+      } else {
+        setLeaderboard([]);
+      }
+    } catch {
+      setLeaderboard([]);
+    }
+  }
 
   useEffect(() => {
-    setResults(null);
-    setError(null);
-    setCodeWithHeader("");
-    setActiveTestIndex(0);
+    async function loadTaskAndSolved() {
+      setError(null);
+      setResults(null);
+      setLeaderboard(null);
+      setCodeWithHeader("");
+      setActiveTestIndex(0);
+      setActiveTab("description");
+      setIsSubmitting(false);
+      setIsSolved(false);
 
-    getTaskById(taskId)
-      .then((taskData) => {
-        setTask(taskData);
+      try {
+        const data = await getTaskById(taskId);
+        setTask(data);
 
-        let funcArgs = "...";
-        if (taskData.tests?.length > 0) {
-          const firstTest = taskData.tests.find((t) => t.is_active);
+        let solved = false;
+        try {
+          const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+          if (token) {
+            const solvedData = await isTaskSolved(taskId, token);
+            solved = solvedData.solved;
+          }
+        } catch {}
+
+        setIsSolved(solved);
+
+        if (solved) {
+          setActiveTab("accepted");
+          await fetchLeaderboard(taskId);
+        }
+
+        let args = "";
+        if (data.tests?.length) {
+          const firstTest = data.tests.find((t) => t.is_active);
           if (firstTest) {
             try {
-              const inputObj = JSON.parse(firstTest.input_data);
-              funcArgs = Object.keys(inputObj).join(", ");
+              args = Object.keys(JSON.parse(firstTest.input_data)).join(", ");
             } catch {}
           }
         }
+        setCodeWithHeader(`def ${data.function_name}(${args}):\n    `);
+      } catch (e) {
+        setError("Задача не найдена: " + e.message);
+      }
+    }
 
-        const funcHeader = `def ${taskData.function_name}(${funcArgs}):`;
-        const initialBody = "    ";
-
-        setCodeWithHeader(funcHeader + "\n" + initialBody);
-      })
-      .catch((e) => setError("Задача не найдена: " + e));
+    loadTaskAndSolved();
   }, [taskId]);
 
   function normalizeBodyLines(lines) {
@@ -51,37 +268,28 @@ export default function TaskDetail() {
   }
 
   function handleCodeChange(e) {
-    const value = e.target.value;
-    const lines = value.split("\n");
-
+    const val = e.target.value;
+    const lines = val.split("\n");
     const header = lines[0] || "";
     const bodyLines = lines.slice(1);
-
-    const normalizedBody = normalizeBodyLines(bodyLines);
-    const normalizedCode = [header, ...normalizedBody].join("\n");
-    setCodeWithHeader(normalizedCode);
+    const normalized = normalizeBodyLines(bodyLines);
+    setCodeWithHeader([header, ...normalized].join("\n"));
   }
 
   function handlePaste(e) {
     e.preventDefault();
     const paste = e.clipboardData.getData("text");
     const pasteLines = paste.split("\n");
-
     const textarea = e.target;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-
     const normalizedPasteLines = pasteLines.map((line) =>
       line.trim() === "" ? "    " : "    " + line.trimStart()
     );
-
-    const beforeCursor = codeWithHeader.substring(0, start);
-    const afterCursor = codeWithHeader.substring(end);
-
-    const newCode = beforeCursor + normalizedPasteLines.join("\n") + afterCursor;
-
+    const before = codeWithHeader.substring(0, start);
+    const after = codeWithHeader.substring(end);
+    const newCode = before + normalizedPasteLines.join("\n") + after;
     setCodeWithHeader(newCode);
-
     setTimeout(() => {
       const pos = start + normalizedPasteLines.join("\n").length;
       textarea.selectionStart = textarea.selectionEnd = pos;
@@ -94,526 +302,530 @@ export default function TaskDetail() {
       const textarea = e.target;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-
-      const newValue =
-        codeWithHeader.substring(0, start) +
-        "    " +
-        codeWithHeader.substring(end);
-
-      setCodeWithHeader(newValue);
-
+      const newVal = codeWithHeader.substring(0, start) + "    " + codeWithHeader.substring(end);
+      setCodeWithHeader(newVal);
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 4;
       }, 0);
     } else if (e.key === "Enter") {
       e.preventDefault();
-
       const textarea = e.target;
-      const value = textarea.value;
-      const selectionStart = textarea.selectionStart;
-      const selectionEnd = textarea.selectionEnd;
-
-      const lines = value.substring(0, selectionStart).split("\n");
-
+      const val = textarea.value;
+      const selStart = textarea.selectionStart;
+      const selEnd = textarea.selectionEnd;
+      const lines = val.substring(0, selStart).split("\n");
       if (lines.length === 1) {
-        const newValue =
-          value.slice(0, selectionStart) + "\n" + value.slice(selectionEnd);
-        setCodeWithHeader(newValue);
-
+        const newVal = val.slice(0, selStart) + "\n" + val.slice(selEnd);
+        setCodeWithHeader(newVal);
         setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = selectionStart + 1;
+          textarea.selectionStart = textarea.selectionEnd = selStart + 1;
         }, 0);
         return;
       }
-
       const currentLine = lines[lines.length - 1];
       const indentMatch = currentLine.match(/^(\s*)/);
       const indent = indentMatch ? indentMatch[1] : "";
-
       const insertText = "\n" + indent;
-      const newValue =
-        value.slice(0, selectionStart) + insertText + value.slice(selectionEnd);
-      setCodeWithHeader(newValue);
-
+      const newVal = val.slice(0, selStart) + insertText + val.slice(selEnd);
+      setCodeWithHeader(newVal);
       setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = selectionStart + insertText.length;
+        textarea.selectionStart = textarea.selectionEnd = selStart + insertText.length;
       }, 0);
     }
   }
 
-  async function runCode() {
+  async function runUserCode() {
+    setIsSubmitting(false);
     setLoading(true);
     setError(null);
     setResults(null);
 
     try {
-      const lines = codeWithHeader.split("\n");
-      const bodyLines = lines.slice(1);
-
-      const bodyCode = bodyLines
+      const body = codeWithHeader
+        .split("\n")
+        .slice(1)
         .map((line) => (line.startsWith("    ") ? line.slice(4) : line))
         .join("\n");
-
-      if (!bodyCode.trim()) {
-        throw new Error("Тело функции не должно быть пустым.");
-      }
-
-      const data = await runTaskCode(taskId, bodyCode);
+      if (!body.trim()) throw new Error("Тело функции не должно быть пустым.");
+      const data = await runTaskCode(taskId, body);
       setResults(data);
       setActiveTestIndex(0);
     } catch (e) {
-      setError("Ошибка выполнения: " + e);
+      setError("Ошибка выполнения: " + e.message);
     } finally {
       setLoading(false);
     }
   }
 
-  function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
+  async function submitUserCode() {
+    setIsSubmitting(true);
+    setLoading(true);
+    setError(null);
+    setResults(null);
+
+    try {
+      const body = codeWithHeader
+        .split("\n")
+        .slice(1)
+        .map((line) => (line.startsWith("    ") ? line.slice(4) : line))
+        .join("\n");
+      if (!body.trim()) throw new Error("Тело функции не должно быть пустым.");
+      const data = await runTaskCode(taskId, body);
+      setResults(data);
+      setActiveTestIndex(0);
+
+      if (data.success) {
+        setIsSolved(true);
+        setActiveTab("accepted");
+        await fetchLeaderboard(taskId);
+      }
+    } catch (e) {
+      setError("Ошибка выполнения: " + e.message);
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
+    }
   }
 
-  if (error)
+  if (error) {
     return (
-      <div className={`container ${theme}`}>
-        <div className="error">{error}</div>
+      <div style={styles.container}>
+        <div style={{ color: "#f44747", fontWeight: "700", fontSize: 18, marginTop: 24 }}>{error}</div>
       </div>
     );
-  if (!task)
+  }
+  if (!task) {
     return (
-      <div className={`container ${theme}`}>
-        <div className="loading">Загрузка задачи...</div>
+      <div style={styles.container}>
+        <div style={{ color: "#61dafb", fontWeight: "700", fontSize: 18, marginTop: 24 }}>Загрузка задачи...</div>
       </div>
     );
+  }
+
+  const tabs = [
+    { id: "description", title: "Description" },
+    { id: "accepted", title: "Accepted" },
+    { id: "editorial", title: "Editorial" },
+    { id: "solutions", title: "Solutions" },
+    { id: "submissions", title: "Submissions" },
+  ];
 
   const activeTests = task.tests?.filter((t) => t.is_active) || [];
 
   return (
-    <div className={`container ${theme}`}>
-      <header className="header" role="banner">
-        <h1>{task.title}</h1>
-        <button
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          type="button"
-        >
-          {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
-        </button>
-      </header>
+    <div style={styles.container}>
+      <Tabs tabs={tabs} current={activeTab} onChange={setActiveTab} />
 
-      <main className="main-content">
-        <section
-          className="description-panel"
-          aria-label="Task description and testcases"
-        >
-          <h2 className="subtitle">Description</h2>
-          <div className="tags-row" aria-label="Difficulty tag">
-            <span className="tag difficulty">{task.difficulty || "Unknown"}</span>
-          </div>
-          <p className="description-text" tabIndex={0}>
-            {task.description}
-          </p>
-
-          {activeTests.length > 0 && (
-            <div className="examples">
-              <h3>Testcases</h3>
-              <div
-                className="testcase-list"
-                role="list"
-                aria-label="Test case selector"
-              >
-                {activeTests.map((test, idx) => (
-                  <button
-                    key={test.id}
-                    className={`testcase-btn ${
-                      activeTestIndex === idx ? "active" : ""
-                    }`}
-                    onClick={() => setActiveTestIndex(idx)}
-                    type="button"
-                    aria-pressed={activeTestIndex === idx}
-                  >
-                    Case {idx + 1}
-                  </button>
+      <div style={styles.contentArea}>
+        <section style={styles.leftPanel} aria-label="Task details">
+          {activeTab === "description" && (
+            <>
+              <h1 style={styles.title}>
+                {task.id}. {task.title}
+                <span style={{ ...styles.status, color: isSolved ? "#0e8f55" : "#f44747" }}>
+                  {isSolved ? "Solved ✔️" : "Unsolved"}
+                </span>
+              </h1>
+              <div style={styles.tags}>
+                <span style={{ ...styles.tag, backgroundColor: "#0e8f55" }}>Easy</span>
+                {task.topics?.map((topic) => (
+                  <span key={topic} style={{ ...styles.tag, backgroundColor: "#007acc" }}>
+                    {topic}
+                  </span>
                 ))}
+                {task.companies?.map((c) => (
+                  <span key={c} style={{ ...styles.tag, backgroundColor: "#c586c0" }}>
+                    {c}
+                  </span>
+                ))}
+                {task.hint && (
+                  <span style={{ ...styles.tag, backgroundColor: "#9cdcfe", color: "#333" }}>Hint</span>
+                )}
               </div>
-              <div
-                className="testcase-data"
-                aria-live="polite"
-                aria-atomic="true"
-                tabIndex={0}
-              >
-                <div>
-                  <b>Input:</b>
-                  <pre>{activeTests[activeTestIndex]?.input_data}</pre>
-                </div>
-                <div>
-                  <b>Expected Output:</b>
-                  <pre>{activeTests[activeTestIndex]?.expected_output}</pre>
-                </div>
-                {results &&
-                  results.results &&
-                  results.results[activeTestIndex] && (
-                    <div>
-                      <b>Your Output:</b>
-                      <pre>
-                        {typeof results.results[activeTestIndex].output ===
-                        "string"
-                          ? results.results[activeTestIndex].output
-                          : JSON.stringify(
-                              results.results[activeTestIndex].output,
-                              null,
-                              2
-                            )}
-                      </pre>
-                      <b>Result: </b>
-                      {results.results[activeTestIndex].passed ? (
-                        <span className="pass-text">Passed</span>
-                      ) : (
-                        <span className="fail-text">Failed</span>
-                      )}
-                      {results.results[activeTestIndex].error && (
-                        <div className="error-text">
-                          <b>Error:</b> {results.results[activeTestIndex].error}
-                        </div>
-                      )}
-                    </div>
-                  )}
-              </div>
-            </div>
+              <article style={styles.description} tabIndex={0} dangerouslySetInnerHTML={{ __html: task.description }} />
+            </>
           )}
+
+          {activeTab === "accepted" && (
+            <>
+              <h2 style={styles.subTitle}>Accepted Submissions</h2>
+              {leaderboard === null && <p style={{ color: "#999" }}>Loading leaderboard...</p>}
+              {leaderboard && leaderboard.length === 0 && <p style={{ color: "#999" }}>No leaderboard data available.</p>}
+              {leaderboard && leaderboard.length > 0 && (
+                <>
+                  <RuntimeMemoryChart leaderboard={leaderboard} />
+
+                  <table style={styles.table} aria-label="Leaderboard table">
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Rank</th>
+                        <th style={styles.th}>User</th>
+                        <th style={styles.th}>Best Runtime (sec)</th>
+                        <th style={styles.th}>Best Memory (MB)</th>
+                        <th style={styles.th}>Submissions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.map((entry, i) => (
+                        <tr
+                          key={entry.user_id}
+                          style={{ cursor: "pointer" }}
+                          tabIndex={0}
+                          aria-label={`Rank ${i + 1}, User ${entry.user_name}, Runtime ${
+                            entry.best_runtime?.toFixed(3) || "N/A"
+                          } sec, Memory ${entry.best_memory?.toFixed(2) || "N/A"} MB`}
+                        >
+                          <td style={styles.td}>{i + 1}</td>
+                          <td style={styles.td}>{entry.user_name}</td>
+                          <td style={styles.td}>
+                            {entry.best_runtime != null ? entry.best_runtime.toFixed(6) : "N/A"}
+                          </td>
+                          <td style={styles.td}>{entry.best_memory != null ? entry.best_memory.toFixed(2) : "N/A"}</td>
+                          <td style={styles.td}>{entry.total_submissions}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </>
+          )}
+
+          {activeTab === "editorial" && <p style={{ color: "#999" }}>Editorial content not implemented yet.</p>}
+          {activeTab === "solutions" && <p style={{ color: "#999" }}>Solutions content not implemented yet.</p>}
+          {activeTab === "submissions" && <p style={{ color: "#999" }}>Submissions content not implemented yet.</p>}
         </section>
 
-        <section className="editor-panel" aria-label="Code editor">
+        <section style={styles.rightPanel} aria-label="Code editor and test cases">
+          <div style={styles.editorHeader}>
+            <div style={styles.languageLabel}>Python</div>
+            <div>
+              <button
+                onClick={() => alert("Undo not implemented")}
+                style={styles.actionButton}
+                title="Undo"
+                type="button"
+              >
+                ↶
+              </button>
+              <button
+                onClick={() => alert("Redo not implemented")}
+                style={styles.actionButton}
+                title="Redo"
+                type="button"
+              >
+                ↷
+              </button>
+              <button
+                onClick={runUserCode}
+                disabled={loading || !codeWithHeader.trim()}
+                style={{
+                  ...styles.actionButton,
+                  ...(loading || !codeWithHeader.trim() ? styles.disabledBtn : {}),
+                }}
+                title="Run Code"
+                type="button"
+              >
+                ▶️
+              </button>
+              <button
+                onClick={submitUserCode}
+                disabled={loading || !codeWithHeader.trim()}
+                style={{
+                  ...styles.actionButton,
+                  ...styles.submitBtn,
+                  ...(loading || !codeWithHeader.trim() ? styles.disabledBtn : {}),
+                }}
+                title="Submit Code"
+                type="button"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+
           <textarea
-            className="code-editor"
+            ref={textareaRef}
             value={codeWithHeader}
             onChange={handleCodeChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             spellCheck={false}
-            rows={30}
             aria-label="Code editor"
+            rows={20}
+            style={styles.textarea}
           />
-          <button
-            className="run-button"
-            onClick={runCode}
-            disabled={loading || !codeWithHeader.trim()}
-            title="Run Code"
+
+          <div
             aria-live="polite"
-            type="button"
+            role="status"
+            style={{
+              color: loading ? "#61dafb" : error ? "#f44747" : "transparent",
+              height: 30,
+              marginTop: 8,
+              fontWeight: "700",
+              userSelect: "none",
+              textAlign: "center",
+            }}
           >
-            {loading ? "Running..." : "Submit"}
-          </button>
+            {loading ? (isSubmitting ? "Submitting..." : "Running...") : error ? error : ""}
+          </div>
+
+          {results && results.results && results.results[activeTestIndex] && (
+            <div style={styles.testCaseResult} tabIndex={0}>
+              <div style={{ fontWeight: "700", fontSize: 16 }}>
+                Test Case {activeTestIndex + 1} Result:{" "}
+                <span style={{ color: results.results[activeTestIndex].passed ? "#0e8f55" : "#f44747" }}>
+                  {results.results[activeTestIndex].passed ? "Passed" : "Failed"}
+                </span>
+              </div>
+              <pre
+                style={
+                  results.results[activeTestIndex].passed
+                    ? styles.outputPre
+                    : styles.errorPre
+                }
+              >
+                {typeof results.results[activeTestIndex].output === "string"
+                  ? results.results[activeTestIndex].output
+                  : JSON.stringify(results.results[activeTestIndex].output, null, 2)}
+              </pre>
+              {results.results[activeTestIndex].error && (
+                <div role="alert" style={{ color: "#f44747", fontWeight: "700" }}>
+                  Error: {results.results[activeTestIndex].error}
+                </div>
+              )}
+              <div style={{ marginTop: 10 }}>
+                <button
+                  onClick={() => setActiveTestIndex((idx) => Math.max(0, idx - 1))}
+                  disabled={activeTestIndex === 0}
+                  style={{
+                    marginRight: 10,
+                    padding: "6px 14px",
+                    cursor: activeTestIndex === 0 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Prev Test
+                </button>
+                <button
+                  onClick={() =>
+                    setActiveTestIndex((idx) =>
+                      Math.min(results.results.length - 1, idx + 1)
+                    )
+                  }
+                  disabled={activeTestIndex === results.results.length - 1}
+                  style={{
+                    padding: "6px 14px",
+                    cursor:
+                      activeTestIndex === results.results.length - 1
+                        ? "not-allowed"
+                        : "pointer",
+                  }}
+                >
+                  Next Test
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTests.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <div style={{ marginBottom: 8, fontWeight: "700", color: "#61dafb" }}>
+                Active Tests
+              </div>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+                {activeTests.map((test, i) => (
+                  <button
+                    key={test.id}
+                    onClick={() => setActiveTestIndex(i)}
+                    style={{
+                      padding: "8px 12px",
+                      backgroundColor: activeTestIndex === i ? "#007acc" : "#1e1e1e",
+                      color: activeTestIndex === i ? "#fff" : "#9cdcfe",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      userSelect: "none",
+                      boxShadow: activeTestIndex === i ? "0 0 12px #007accbb" : "none",
+                      whiteSpace: "nowrap",
+                    }}
+                    aria-selected={activeTestIndex === i}
+                    role="tab"
+                  >
+                    Case {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
-      </main>
-
-      <style>{`
-        /* Reset & base */
-        * {
-          box-sizing: border-box;
-        }
-        html, body, #root {
-          height: 100%;
-          margin: 0;
-          background: var(--bg);
-          color: var(--text);
-          font-family: 'Fira Code', monospace, monospace;
-          overflow: hidden; /* prevent body scroll */
-        }
-        /* Theme variables */
-        .container.dark {
-          --bg: #1e1e1e;
-          --panel-bg: #252526;
-          --border: #333;
-          --text: #d4d4d4;
-          --highlight: #61dafb;
-          --green: #0e8f55;
-          --red: #f44747;
-          --code-bg: #252526;
-          --code-border: #3c3c3c;
-          --shadow: rgba(0,0,0,0.7);
-          --button-bg: #007acc;
-          --button-bg-hover: #005f9e;
-          --button-disabled: #3c3c3c;
-        }
-        .container.light {
-          --bg: #f0f0f0;
-          --panel-bg: #ffffff;
-          --border: #ddd;
-          --text: #333;
-          --highlight: #007acc;
-          --green: #0a8f55;
-          --red: #d93025;
-          --code-bg: #f9f9f9;
-          --code-border: #ccc;
-          --shadow: rgba(0,0,0,0.2);
-          --button-bg: #007acc;
-          --button-bg-hover: #005f9e;
-          --button-disabled: #bbb;
-        }
-        .container {
-          display: flex;
-          flex-direction: column;
-          height: 100vh;
-          background: var(--bg);
-          color: var(--text);
-          transition: background-color 0.3s ease, color 0.3s ease;
-          overflow: hidden;
-        }
-        .header {
-          position: sticky;
-          top: 0;
-          z-index: 20;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem 2rem;
-          background: var(--panel-bg);
-          box-shadow: 0 2px 6px var(--shadow);
-          font-weight: 700;
-          font-size: 1.5rem;
-          color: var(--highlight);
-          user-select: none;
-          min-height: 60px;
-        }
-        .theme-toggle {
-          background: none;
-          border: none;
-          color: var(--highlight);
-          cursor: pointer;
-          font-size: 1rem;
-          padding: 0.3rem 0.6rem;
-          border-radius: 6px;
-          transition: background-color 0.3s ease;
-        }
-        .theme-toggle:hover {
-          background-color: var(--button-bg-hover);
-          color: white;
-        }
-        .main-content {
-          display: flex;
-          flex: 1;
-          overflow: hidden;
-          min-height: 0;
-        }
-        .description-panel {
-          flex: 1;
-          background: var(--panel-bg);
-          border-right: 1px solid var(--border);
-          padding: 2rem 2.5rem;
-          overflow-y: auto;
-          min-height: 0;
-          display: flex;
-          flex-direction: column;
-        }
-        .title {
-          font-size: 2.2rem;
-          margin-bottom: 0.5rem;
-          color: var(--highlight);
-          font-weight: 900;
-          user-select: text;
-        }
-        .subtitle {
-          font-weight: 700;
-          font-size: 1.4rem;
-          margin-bottom: 1rem;
-          color: var(--highlight);
-          user-select: none;
-        }
-        .tags-row {
-          margin-bottom: 1.5rem;
-        }
-        .tag {
-          display: inline-block;
-          padding: 5px 14px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          user-select: none;
-          cursor: default;
-          background-color: var(--green);
-          color: white;
-        }
-        .description-text {
-          font-size: 1.1rem;
-          line-height: 1.65;
-          color: var(--text);
-          white-space: pre-wrap;
-          margin-bottom: 2rem;
-          min-height: 150px;
-          flex-grow: 1;
-          user-select: text;
-          overflow-y: auto;
-        }
-        .examples {
-          border-top: 1px solid var(--border);
-          padding-top: 1.5rem;
-          user-select: none;
-        }
-        .testcase-list {
-          display: flex;
-          gap: 12px;
-          margin-bottom: 1rem;
-          flex-wrap: wrap;
-        }
-        .testcase-btn {
-          background: #2d2d2d;
-          border: none;
-          padding: 8px 18px;
-          border-radius: 6px;
-          font-weight: 600;
-          color: var(--text);
-          cursor: pointer;
-          user-select: none;
-          transition: background-color 0.25s ease;
-          font-size: 1rem;
-        }
-        .container.light .testcase-btn {
-          background: #e0e0e0;
-          color: #333;
-        }
-        .testcase-btn.active,
-        .testcase-btn:hover {
-          background: var(--button-bg);
-          color: white;
-          box-shadow: 0 0 12px var(--button-bg);
-        }
-        .testcase-data pre {
-          background: var(--bg);
-          padding: 14px;
-          border-radius: 6px;
-          overflow-x: auto;
-          color: var(--highlight);
-          font-size: 1rem;
-          margin-top: 5px;
-          white-space: pre-wrap;
-          border: 1px solid var(--border);
-          font-family: 'Fira Code', monospace, monospace;
-          max-height: 220px;
-          overflow-y: auto;
-          user-select: text;
-        }
-        .pass-text {
-          color: var(--green);
-          font-weight: 700;
-          font-size: 1.1rem;
-        }
-        .fail-text {
-          color: var(--red);
-          font-weight: 700;
-          font-size: 1.1rem;
-        }
-        .error-text {
-          margin-top: 6px;
-          color: #ff6e6e;
-          font-weight: 600;
-          font-size: 0.95rem;
-        }
-        .editor-panel {
-          flex: 1.5;
-          display: flex;
-          flex-direction: column;
-          padding: 2rem 2.5rem;
-          background: var(--bg);
-          min-height: 0;
-          overflow: hidden;
-        }
-        .code-editor {
-          flex-grow: 1;
-          background: var(--code-bg);
-          border-radius: 8px;
-          border: 1px solid var(--code-border);
-          color: var(--text);
-          font-size: 16px;
-          line-height: 1.5;
-          font-family: 'Fira Code', monospace, monospace;
-          padding: 20px;
-          resize: none;
-          outline: none;
-          white-space: pre;
-          box-shadow: inset 0 0 18px var(--shadow);
-          transition: border-color 0.3s ease;
-          user-select: text;
-          min-height: 500px;
-          overflow-y: auto;
-        }
-        .code-editor:focus {
-          border-color: var(--button-bg);
-          box-shadow: 0 0 15px var(--button-bg);
-          background: var(--panel-bg);
-        }
-        .run-button {
-          margin-top: 20px;
-          padding: 14px 38px;
-          font-size: 1.2rem;
-          background-color: var(--button-bg);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 700;
-          box-shadow: 0 6px 12px rgb(0 122 204 / 0.8);
-          transition: background-color 0.3s ease;
-          user-select: none;
-          align-self: flex-start;
-          min-width: 140px;
-          text-align: center;
-        }
-        .run-button:disabled {
-          background-color: var(--button-disabled);
-          cursor: not-allowed;
-          box-shadow: none;
-          color: #999;
-        }
-        .run-button:not(:disabled):hover {
-          background-color: var(--button-bg-hover);
-        }
-        .error {
-          background: #ff4c4c;
-          padding: 15px;
-          border-radius: 8px;
-          font-weight: 700;
-          font-size: 1.1rem;
-          color: white;
-          text-align: center;
-          box-shadow: 0 0 12px #ff4c4caa;
-          margin: 40px auto;
-          max-width: 600px;
-          user-select: none;
-        }
-        .loading {
-          font-size: 1.3rem;
-          text-align: center;
-          color: var(--highlight);
-          margin: 60px 0;
-          user-select: none;
-        }
-
-        /* Scrollbar styling */
-        .description-panel::-webkit-scrollbar,
-        .testcase-data pre::-webkit-scrollbar,
-        .code-editor::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        .description-panel::-webkit-scrollbar-thumb,
-        .testcase-data pre::-webkit-scrollbar-thumb,
-        .code-editor::-webkit-scrollbar-thumb {
-          background-color: #555;
-          border-radius: 10px;
-        }
-        .description-panel::-webkit-scrollbar-track,
-        .testcase-data pre::-webkit-scrollbar-track,
-        .code-editor::-webkit-scrollbar-track {
-          background-color: var(--panel-bg);
-        }
-        .container.light .description-panel::-webkit-scrollbar-track,
-        .container.light .testcase-data pre::-webkit-scrollbar-track,
-        .container.light .code-editor::-webkit-scrollbar-track {
-          background-color: #f0f0f0;
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    backgroundColor: "#1e1e1e",
+    color: "#d4d4d4",
+    height: "100vh",
+    width: "100vw",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    display: "flex",
+    flexDirection: "column",
+    padding: 20,
+    userSelect: "text",
+  },
+  contentArea: {
+    display: "flex",
+    flexGrow: 1,
+    overflow: "hidden",
+    borderRadius: 10,
+    boxShadow: "0 0 32px #007accbb",
+  },
+  leftPanel: {
+    flexBasis: "45%",
+    padding: 24,
+    borderRight: "3px solid #007acc",
+    overflowY: "auto",
+    backgroundColor: "#252526",
+    borderRadius: "10px 0 0 10px",
+    userSelect: "text",
+  },
+  rightPanel: {
+    flexBasis: "55%",
+    backgroundColor: "#1e1e1e",
+    padding: 24,
+    display: "flex",
+    flexDirection: "column",
+  },
+  title: {
+    fontWeight: 900,
+    fontSize: 28,
+    marginBottom: 10,
+    userSelect: "text",
+  },
+  status: {
+    marginLeft: 16,
+    fontWeight: 700,
+    fontSize: 18,
+    userSelect: "none",
+  },
+  tags: {
+    display: "flex",
+    gap: 10,
+    marginBottom: 16,
+    flexWrap: "wrap",
+  },
+  tag: {
+    padding: "6px 14px",
+    borderRadius: 9999,
+    fontWeight: 700,
+    fontSize: 12,
+    userSelect: "none",
+    color: "white",
+  },
+  description: {
+    lineHeight: 1.6,
+    fontSize: 16,
+    userSelect: "text",
+    overflowY: "auto",
+    maxHeight: "65vh",
+    paddingRight: 10,
+  },
+  subTitle: {
+    fontWeight: 700,
+    fontSize: 20,
+    marginBottom: 12,
+    color: "#61dafb",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    marginTop: 12,
+  },
+  th: {
+    backgroundColor: "#007acc",
+    color: "white",
+    padding: "10px 14px",
+    fontWeight: 700,
+    textAlign: "left",
+  },
+  td: {
+    padding: "10px 14px",
+    borderBottom: "1px solid #333",
+  },
+  editorHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  languageLabel: {
+    color: "#9cdcfe",
+    fontWeight: 700,
+    fontFamily: "'Fira Code', monospace",
+  },
+  actionButton: {
+    background: "transparent",
+    border: "none",
+    color: "#9cdcfe",
+    fontSize: 20,
+    marginLeft: 12,
+    cursor: "pointer",
+    borderRadius: 10,
+    padding: "4px 10px",
+    transition: "all 0.25s ease",
+  },
+  disabledBtn: {
+    color: "#555",
+    cursor: "not-allowed",
+  },
+  submitBtn: {
+    fontWeight: 700,
+    boxShadow: "0 0 12px #0e8f5588",
+  },
+  textarea: {
+    backgroundColor: "#252526",
+    color: "#d4d4d4",
+    fontFamily: "'Fira Code', monospace",
+    fontSize: 15,
+    padding: 20,
+    borderRadius: 14,
+    border: "none",
+    resize: "none",
+    flexGrow: 1,
+    outline: "none",
+    lineHeight: 1.4,
+    boxShadow: "inset 0 0 20px #007accaa",
+    userSelect: "text",
+  },
+  testCaseResult: {
+    backgroundColor: "#1e1e1e",
+    marginTop: 20,
+    padding: 18,
+    borderRadius: 12,
+    boxShadow: "0 0 16px #007accbb",
+    fontFamily: "'Fira Code', monospace",
+  },
+  outputPre: {
+    backgroundColor: "#252526",
+    color: "#0e8f55",
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 12,
+    overflowX: "auto",
+    whiteSpace: "pre-wrap",
+    fontSize: 14,
+  },
+  errorPre: {
+    backgroundColor: "#2a1e1e",
+    color: "#f44747",
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 12,
+    overflowX: "auto",
+    whiteSpace: "pre-wrap",
+    fontSize: 14,
+  },
+};

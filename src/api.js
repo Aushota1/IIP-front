@@ -182,3 +182,43 @@ export const runTaskCode = async (taskId, code) => {
   });
   return response.data;
 };
+
+
+export const getFavorites = async () => {
+  const response = await api.get('/favorites');
+  return response.data;
+};
+
+// Добавить задачу в избранное по ID
+export const addFavorite = async (taskId) => {
+  const response = await api.post(`/favorites/${taskId}`);
+  return response.data;
+};
+
+// Удалить задачу из избранного по ID
+export const removeFavorite = async (taskId) => {
+  const response = await api.delete(`/favorites/${taskId}`);
+  return response.data;
+};
+
+export const getSolvedTasks = async (token) => {
+  const response = await api.get('/tasks/solved', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const isTaskSolved = async (taskId, token) => {
+  const response = await api.get(`/tasks/${taskId}/solved`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data; // { solved: true/false }
+};
+
+
+export const getTaskLeaderboard = async (taskId, token) => {
+  const response = await api.get(`/tasks/${taskId}/leaderboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data; // Ожидается объект с таблицей лидеров
+};

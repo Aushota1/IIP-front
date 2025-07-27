@@ -1,25 +1,129 @@
 import React, { useState, useEffect } from "react";
-import TaskCard from "../components/TaskCard";
-import { getTasks } from "../api";
+import {
+  FaSearch,
+  FaSortAmountDown,
+  FaFilter,
+  FaStar,
+  FaRegStar,
+  FaCheckCircle,
+  FaRegCircle,
+} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import {
+  getTasks,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  getSolvedTasks,
+} from "../api";
+import styles from "./TaskList.module.css";
+
+function TaskCard({ task, onToggleFavorite }) {
+  const navigate = useNavigate();
+
+  const colors = {
+    Easy: "#2ea44f",
+    Medium: "#d29922",
+    Med: "#d29922",
+    Hard: "#cf222e",
+  };
+
+  const diff = task.difficulty || "Easy";
+  const diffColor = colors[diff] || "#57606a";
+
+  function handleClick(e) {
+    if (e.target.closest("button")) return;
+    navigate(`/tasks/${task.id}`);
+  }
+
+  return (
+    <div
+      className={styles.taskCard}
+      onClick={handleClick}
+      tabIndex={0}
+      role="link"
+      aria-label={`Открыть задачу ${task.title}`}
+    >
+      <div className={styles.taskStatusIcon}>
+        {task.isSolved ? (
+          <FaCheckCircle color="#2ea44f" />
+        ) : (
+          <FaRegCircle color="#57606a" />
+        )}
+      </div>
+      <div className={styles.taskNumber}>{task.number}.</div>
+      <div className={styles.taskTitle}>{task.title}</div>
+      <div className={styles.taskPercent}>{task.solvedPercent?.toFixed(1)}%</div>
+      <div className={styles.taskDifficulty} style={{ color: diffColor }}>
+        {diff === "Medium" ? "Med." : diff}
+      </div>
+      <div className={styles.taskProgressBar}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className={`${styles.progressSegment} ${
+              i < (task.progressLevel || 0) ? styles.progressSegmentFilled : ""
+            }`}
+          ></div>
+        ))}
+      </div>
+      <button
+        className={styles.taskFavoriteBtn}
+        aria-label={
+          task.isFavorite ? "Убрать из избранного" : "Добавить в избранное"
+        }
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleFavorite(task.id, task.isFavorite);
+        }}
+      >
+        {task.isFavorite ? (
+          <FaStar color="#ffbf00" />
+        ) : (
+          <FaRegStar color="#8b949e" />
+        )}
+      </button>
+    </div>
+  );
+}
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [difficultyFilter, setDifficultyFilter] = useState("");
   const [searchText, setSearchText] = useState("");
+  const [solvedTaskIds, setSolvedTaskIds] = useState(new Set());
 
   useEffect(() => {
-    getTasks()
-      .then((data) => {
-        setTasks(data);
-        setFilteredTasks(data);
-      })
-      .catch((e) => alert("Ошибка загрузки задач: " + e));
-  }, []);
+    async function fetchData() {
+      try {
+        const tasksData = await getTasks();
+        const favoritesData = await getFavorites();
+        const solvedTasksData = await getSolvedTasks();
 
-  const difficulties = Array.from(
-    new Set(tasks.map((t) => t.difficulty).filter(Boolean))
-  );
+        const favoriteIds = new Set(favoritesData.map((f) => f.id));
+        const solvedIds = new Set(solvedTasksData.map((t) => t.id));
+        setSolvedTaskIds(solvedIds);
+
+        const formatted = tasksData.map((t, idx) => ({
+          id: t.id,
+          number: idx + 1,
+          title: t.title,
+          solvedPercent: t.solvedPercent || 0,
+          difficulty: t.difficulty || "Easy",
+          isFavorite: favoriteIds.has(t.id),
+          progressLevel: Math.floor(Math.random() * 7),
+          isSolved: solvedIds.has(t.id),
+        }));
+
+        setTasks(formatted);
+        setFilteredTasks(formatted);
+      } catch (e) {
+        alert("Ошибка загрузки задач: " + e);
+      }
+    }
+    fetchData();
+  }, []);
 
   useEffect(() => {
     let filtered = tasks;
@@ -37,150 +141,131 @@ export default function TaskList() {
     setFilteredTasks(filtered);
   }, [difficultyFilter, searchText, tasks]);
 
+  async function toggleFavorite(id, currentlyFavorite) {
+    try {
+      if (currentlyFavorite) {
+        await removeFavorite(id);
+      } else {
+        await addFavorite(id);
+      }
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, isFavorite: !currentlyFavorite } : t
+        )
+      );
+    } catch (error) {
+      alert("Ошибка при обновлении избранного: " + error.message);
+    }
+  }
+
   return (
-    <div className="container">
-      <h1 className="page-title">Задачи</h1>
+    <div className={styles.pageWrapper}>
+      <nav className={styles.sidebar}>
+        <h2>Library</h2>
+        <ul>
+          <li>
+            <b>Library</b>
+          </li>
+          <li>Study Plan</li>
+          <li>Favorite</li>
+          <li>Session (Migrated)</li>
+          <li>to do</li>
+        </ul>
+      </nav>
 
-      <div className="filters">
-        <label className="filter-label">
-          Сложность:
-          <select
-            className="filter-select"
-            value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value)}
-            aria-label="Фильтр по сложности"
-          >
-            <option value="">Все</option>
-            {difficulties.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </label>
+      <main className={styles.mainContent}>
+        <header className={styles.bannerRow}>
+          <div className={`${styles.banner} ${styles.bannerGreen}`}>
+            <div>
+              <h3>LeetCode's Interview Crash Course:</h3>
+              <p>System Design for Interviews and Beyond</p>
+              <button className={styles.btnPrimary}>Start Learning</button>
+            </div>
+          </div>
+          <div className={`${styles.banner} ${styles.bannerPurple}`}>
+            <div>
+              <h3>LeetCode's Interview Crash Course:</h3>
+              <p>Data Structures and Algorithms</p>
+              <button className={styles.btnSecondary}>Start Learning</button>
+            </div>
+          </div>
+          <div className={`${styles.banner} ${styles.bannerBlue}`}>
+            <div>
+              <h3>Top Interview Questions</h3>
+              <button className={styles.btnTertiary}>Get Started</button>
+            </div>
+          </div>
+        </header>
 
-        <label className="filter-label search-label">
-          Поиск:
-          <input
-            className="filter-input"
-            type="search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Введите название задачи"
-            aria-label="Поиск задач"
-          />
-        </label>
-      </div>
-
-      {filteredTasks.length === 0 ? (
-        <p className="no-tasks">Задачи не найдены</p>
-      ) : (
-        <div className="tasks-list">
-          {filteredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+        <section className={styles.topicsRow} aria-label="Темы задач">
+          {[
+            "Array",
+            "String",
+            "Hash Table",
+            "Dynamic Programming",
+            "Math",
+            "Sorting",
+            "Greedy",
+          ].map((topic) => (
+            <button key={topic} className={styles.topicBtn}>
+              {topic}{" "}
+              <span className={styles.topicCount}>
+                {Math.floor(Math.random() * 2000)}
+              </span>
+            </button>
           ))}
-        </div>
-      )}
+        </section>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+        <section className={styles.filterButtons} aria-label="Фильтры по темам">
+          <button className={`${styles.filterBtn} ${styles.filterBtnActive}`}>
+            All Topics
+          </button>
+          <button className={styles.filterBtn}>Algorithms</button>
+          <button className={styles.filterBtn}>Database</button>
+          <button className={styles.filterBtn}>Shell</button>
+          <button className={styles.filterBtn}>Concurrency</button>
+          <button className={styles.filterBtn}>JavaScript</button>
+          <button className={styles.filterBtn}>
+            <FaFilter />
+          </button>
+        </section>
 
-        .container {
-          max-width: 900px;
-          margin: 40px auto;
-          padding: 0 15px;
-          font-family: 'Roboto Mono', monospace;
-          color: #333;
-        }
+        <section className={styles.searchSortBar}>
+          <div className={styles.searchInputWrapper}>
+            <FaSearch className={styles.searchIcon} />
+            <input
+              type="search"
+              placeholder="Search questions"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              aria-label="Поиск задач"
+            />
+          </div>
+          <button className={styles.btnIcon} title="Sort">
+            <FaSortAmountDown />
+          </button>
+          <button className={styles.btnIcon} title="Filter">
+            <FaFilter />
+          </button>
+          <div className={styles.solvedCount}>
+            {filteredTasks.filter((t) => t.isSolved).length} / {tasks.length} Solved
+          </div>
+        </section>
 
-        .page-title {
-          font-weight: 700;
-          font-size: 2.4rem;
-          margin-bottom: 30px;
-          color: #24292e;
-          user-select: none;
-        }
-
-        .filters {
-          display: flex;
-          gap: 20px;
-          flex-wrap: wrap;
-          margin-bottom: 30px;
-        }
-
-        .filter-label {
-          display: flex;
-          flex-direction: column;
-          font-weight: 600;
-          font-size: 0.9rem;
-          color: #586069;
-          user-select: none;
-          min-width: 140px;
-        }
-
-        .search-label {
-          flex-grow: 1;
-          min-width: 200px;
-        }
-
-        .filter-select,
-        .filter-input {
-          margin-top: 8px;
-          padding: 8px 12px;
-          font-size: 1rem;
-          border-radius: 6px;
-          border: 1px solid #d1d5da;
-          outline-offset: 2px;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease;
-          font-family: inherit;
-          color: #24292e;
-          background-color: #fff;
-        }
-
-        .filter-select:focus,
-        .filter-input:focus {
-          border-color: #0366d6;
-          box-shadow: 0 0 0 3px rgb(3 102 214 / 0.3);
-        }
-
-        .filter-input {
-          width: 100%;
-          box-sizing: border-box;
-        }
-
-        .no-tasks {
-          font-size: 1.1rem;
-          color: #6a737d;
-          text-align: center;
-          margin-top: 50px;
-          user-select: none;
-        }
-
-        .tasks-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        /* Добавим стили для TaskCard, если нужно */
-        /* Например, у TaskCard должны быть тени, скругления, плавный hover */
-        /* Пример можно реализовать в самом TaskCard или тут, если TaskCard - простой div */
-
-        /* Пример стилизации кнопок в TaskCard - если нужно */
-        /* .task-card-button {
-          background-color: #0366d6;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          padding: 8px 16px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: background-color 0.2s ease;
-        }
-        .task-card-button:hover {
-          background-color: #0356b6;
-        } */
-      `}</style>
+        <section className={styles.tasksList} aria-label="Список задач">
+          {filteredTasks.length === 0 ? (
+            <p className={styles.noTasks}>Задачи не найдены</p>
+          ) : (
+            filteredTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))
+          )}
+        </section>
+      </main>
     </div>
   );
 }
