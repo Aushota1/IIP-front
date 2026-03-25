@@ -1,0 +1,70 @@
+// =============================================================================
+// BUTTONS — shared across pages
+// =============================================================================
+
+@use '../abstracts' as *;
+
+.btn {
+  display: inline-block;
+  padding: $space-3 $space-6;
+  border-radius: $radius-full;
+  font-family: $font-heading;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: $transition-base;
+  border: none;
+
+  &-primary {
+    background-color: var(--color-primary);
+    color: white;
+
+    &:hover {
+      background-color: var(--color-secondary);
+      transform: translateY(-0.125rem);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &-secondary {
+    background: var(--color-bg-light);
+    color: var(--color-text);
+
+    &:hover {
+      background: #e0e0e0;
+      transform: translateY(-0.1875rem);
+    }
+  }
+
+  &-outline {
+    background-color: transparent;
+    border: 0.125rem solid var(--color-primary);
+    color: var(--color-primary);
+
+    &:hover {
+      background-color: var(--color-primary);
+      color: white;
+    }
+  }
+
+  &-cta {
+    background: var(--color-accent);
+    color: white;
+    padding: $space-3 $space-8 * 0.9375;
+    font-size: $text-lg;
+    box-shadow: 0 0.3125rem 0.9375rem rgba(247, 37, 133, 0.3);
+
+    &:hover {
+      background: #d1166b;
+      transform: translateY(-0.1875rem);
+      box-shadow: 0 0.5rem 1.25rem rgba(247, 37, 133, 0.4);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,30 @@
+// =============================================================================
+// TYPOGRAPHY
+// @description: Base typographic styles and fluid heading scale.
+// =============================================================================
+
+@use '../abstracts' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;500;600;700&display=swap');
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-heading;
+  font-weight: 700;
+  line-height: 1.2;
+  // Не задаём color глобально — каждый компонент управляет цветом сам
+}
+
+// Fluid heading scale
+h1 { @include fluid-type($text-3xl, $text-5xl); }
+h2 { @include fluid-type($text-2xl, $text-4xl); }
+h3 { @include fluid-type($text-xl,  $text-3xl); }
+h4 { @include fluid-type($text-lg,  $text-2xl); }
+
+p {
+  // Не задаём color глобально — серый цвет применяем только там где нужно
+  line-height: 1.7;
+}
+
+code {
+  font-family: $font-code;
+}

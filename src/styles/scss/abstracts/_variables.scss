@@ -1,0 +1,139 @@
+// =============================================================================
+// VARIABLES
+// @description: Single source of truth for all design tokens.
+// Uses CSS custom properties for runtime theming (light/dark),
+// SCSS variables for compile-time logic (breakpoints, math).
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Breakpoints (compile-time only — used in mixins)
+// @token: breakpoint.*
+// -----------------------------------------------------------------------------
+$bp-sm:  36rem;   // 576px
+$bp-md:  48rem;   // 768px
+$bp-lg:  62rem;   // 992px
+$bp-xl:  75rem;   // 1200px
+
+// -----------------------------------------------------------------------------
+// Spacing scale (rem-based, 4px base unit)
+// @token: spacing.*
+// -----------------------------------------------------------------------------
+$space-1:  0.25rem;  // 4px
+$space-2:  0.5rem;   // 8px
+$space-3:  0.75rem;  // 12px
+$space-4:  1rem;     // 16px
+$space-5:  1.25rem;  // 20px
+$space-6:  1.5rem;   // 24px
+$space-7:  1.75rem;  // 28px
+$space-8:  2rem;     // 32px
+$space-9:  2.25rem;  // 36px
+$space-10: 2.5rem;   // 40px
+$space-12: 3rem;     // 48px
+$space-13: 3.25rem;  // 52px
+$space-16: 4rem;     // 64px
+$space-20: 5rem;     // 80px
+
+// -----------------------------------------------------------------------------
+// Typography
+// @token: font.*
+// -----------------------------------------------------------------------------
+$font-main:    'Open Sans', sans-serif;
+$font-heading: 'Montserrat', sans-serif;
+$font-code:    'Courier New', monospace;
+$font-ui:      'Poppins', sans-serif;
+
+$text-xs:   0.75rem;   // 12px
+$text-sm:   0.875rem;  // 14px
+$text-base: 1rem;      // 16px
+$text-lg:   1.125rem;  // 18px
+$text-xl:   1.25rem;   // 20px
+$text-2xl:  1.5rem;    // 24px
+$text-3xl:  1.875rem;  // 30px
+$text-4xl:  2.25rem;   // 36px
+$text-5xl:  3rem;      // 48px
+
+// -----------------------------------------------------------------------------
+// Border radius
+// @token: radius.*
+// -----------------------------------------------------------------------------
+$radius-sm:   0.5rem;    // 8px
+$radius-md:   0.75rem;   // 12px
+$radius-lg:   1rem;      // 16px
+$radius-xl:   1.5rem;    // 24px
+$radius-full: 9999px;
+
+// -----------------------------------------------------------------------------
+// Shadows
+// @token: shadow.*
+// -----------------------------------------------------------------------------
+$shadow-sm: 0 0.0625rem 0.1875rem rgba(0,0,0,0.12), 0 0.0625rem 0.125rem rgba(0,0,0,0.24);
+$shadow-md: 0 0.25rem 0.375rem rgba(0,0,0,0.1), 0 0.0625rem 0.1875rem rgba(0,0,0,0.08);
+$shadow-lg: 0 0.625rem 1.5625rem rgba(0,0,0,0.1), 0 0.3125rem 0.625rem rgba(0,0,0,0.05);
+
+// -----------------------------------------------------------------------------
+// Transitions
+// @token: transition.*
+// -----------------------------------------------------------------------------
+$transition-fast:   all 0.2s ease;
+$transition-base:   all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+$transition-smooth: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+$transition-slow:   all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+// -----------------------------------------------------------------------------
+// Z-index scale
+// @token: z.*
+// -----------------------------------------------------------------------------
+$z-base:    1;
+$z-above:   10;
+$z-overlay: 100;
+$z-modal:   1000;
+$z-top:     1001;
+
+// -----------------------------------------------------------------------------
+// CSS Custom Properties — Light theme (default)
+// @token: color.*
+// Override in [data-theme="dark"] for dark mode
+// -----------------------------------------------------------------------------
+:root {
+  // Brand colors
+  --color-primary:       #4361ee;
+  --color-primary-light: #4895ef;
+  --color-primary-dark:  #3a0ca3;
+  --color-secondary:     #3f37c9;
+  --color-accent:        #f72585;
+  --color-success:       #4cc9f0;
+  --color-warning:       #f8961e;
+  --color-danger:        #ef233c;
+
+  // Neutral palette
+  --color-white:      #ffffff;
+  --color-bg:         #f5f7fa;
+  --color-bg-light:   #f8f9fa;
+  --color-surface:    #ffffff;
+  --color-border:     #e0e0e0;
+  --color-text:       #2b2d42;
+  --color-text-muted: #6c757d;
+  --color-text-light: #8d99ae;
+
+  // Header
+  --header-height:         5rem;    // 80px
+  --header-height-scrolled: 4.375rem; // 70px
+
+  // Transitions (exposed for JS-driven components)
+  --transition: #{$transition-base};
+}
+
+// -----------------------------------------------------------------------------
+// Dark theme
+// @token: color.* (dark)
+// -----------------------------------------------------------------------------
+[data-theme="dark"] {
+  --color-bg:         #0d1117;
+  --color-bg-light:   #161b22;
+  --color-surface:    #1c1f24;
+  --color-border:     #30363d;
+  --color-text:       #c9d1d9;
+  --color-text-muted: #8b949e;
+  --color-text-light: #8b949e;
+  --color-white:      #f0f6fc;
+}

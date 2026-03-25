@@ -1,0 +1,505 @@
+// =============================================================================
+// USER PROFILE PAGE
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// Shared glass section mixin (used 3 times on this page)
+@mixin profile-section {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(0.625rem);
+  padding: $space-6;
+  border-radius: $radius-md;
+  box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.05);
+  border: 0.0625rem solid rgba(110, 69, 226, 0.1);
+  margin-bottom: $space-10;
+}
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+.profile-container {
+  max-width: $bp-xl;
+  margin: 0 auto;
+  padding: $space-5;
+  font-family: $font-main;
+  color: #333;
+  background-color: var(--color-bg-light);
+}
+
+// -----------------------------------------------------------------------------
+// Header
+// -----------------------------------------------------------------------------
+.profile-header {
+  @include flex-between;
+  margin-bottom: $space-8 * 0.9375;
+  padding-bottom: $space-4;
+  border-bottom: 0.0625rem solid #eaeaea;
+
+  h1 {
+    margin: 0;
+    @include fluid-type($text-2xl, $text-3xl);
+    color: #1a1a2e;
+  }
+
+  @include respond(md) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-2 * 1.25;
+  }
+}
+
+.time-stats {
+  display: flex;
+  gap: $space-5;
+  color: #666;
+  font-size: $text-sm;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// User info section
+// -----------------------------------------------------------------------------
+.user-info-section {
+  @include profile-section;
+  @include flex-between;
+
+  @include respond(md) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-5;
+  }
+}
+
+.avatar-container {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+}
+
+.avatar {
+  width: 5rem;  // 80px
+  height: 5rem;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, #6e45e2, #88d3ce);
+  color: white;
+  @include flex-center;
+  font-size: $text-3xl * 0.83;
+  font-weight: bold;
+  box-shadow: 0 0.25rem 0.625rem rgba(110, 69, 226, 0.2);
+}
+
+.user-meta {
+  h2 {
+    margin: 0;
+    @include fluid-type($text-xl, $text-2xl);
+    color: #1a1a2e;
+  }
+
+  p {
+    margin: $space-1 0 0;
+    color: #666;
+    font-size: $text-sm;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Stats (GitHub-style)
+// -----------------------------------------------------------------------------
+.github-like-stats {
+  display: flex;
+  gap: $space-8 * 0.9375;
+
+  @include respond(md) {
+    width: 100%;
+    justify-content: space-between;
+    gap: $space-2 * 1.25;
+  }
+}
+
+.stat-box {
+  text-align: center;
+  background: white;
+  padding: $space-4 $space-6;
+  border-radius: $radius-sm;
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05);
+  min-width: 6.25rem;
+  transition: $transition-fast;
+
+  &:hover { transform: translateY(-0.1875rem); }
+
+  @include respond(md) {
+    flex: 1;
+    min-width: auto;
+    padding: $space-3 $space-4;
+  }
+}
+
+.stat-number {
+  @include fluid-type($text-2xl, $text-3xl * 0.93);
+  font-weight: bold;
+  color: #6e45e2;
+  display: block;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: $text-sm;
+  color: #666;
+  margin-top: $space-1;
+}
+
+// -----------------------------------------------------------------------------
+// Activity section
+// -----------------------------------------------------------------------------
+.activity-section {
+  @include profile-section;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: $space-5;
+    color: #1a1a2e;
+  }
+}
+
+.activity-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: $space-2;
+  margin-top: $space-4;
+
+  @include respond(sm) {
+    grid-template-columns: repeat(7, 1.875rem);
+    gap: $space-1;
+  }
+}
+
+.activity-day {
+  height: 1.875rem;
+  background: #f0f0f0;
+  @include flex-center;
+  border-radius: $radius-sm * 0.75;
+  cursor: pointer;
+  font-size: $text-xs;
+  transition: $transition-fast;
+
+  &.low  { background: #e0f7fa; }
+  &.high { background: #b2ebf2; }
+
+  &:hover {
+    background: #80deea;
+    transform: scale(1.05);
+  }
+
+  @include respond(sm) {
+    height: 1.5625rem;
+    font-size: 0.6875rem;
+  }
+}
+
+.activity-details {
+  background: white;
+  padding: $space-5;
+  border-radius: $radius-sm;
+  margin-top: $space-5;
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05);
+
+  h4 { margin-top: 0; color: #6e45e2; }
+
+  ul { padding: 0; margin: 0; }
+
+  li {
+    padding: $space-2 0;
+    border-bottom: 0.0625rem solid #eee;
+    font-size: $text-sm;
+
+    &:last-child { border-bottom: none; }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Courses section
+// -----------------------------------------------------------------------------
+.courses-section {
+  @include profile-section;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: $space-5;
+    color: #1a1a2e;
+  }
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: $space-5;
+  margin-top: $space-5;
+
+  @include respond(md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.course-card {
+  background: white;
+  padding: $space-5;
+  border-radius: $radius-md * 0.83;
+  box-shadow: 0 0.1875rem 0.625rem rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: $transition-base;
+  border: 0.0625rem solid rgba(110, 69, 226, 0.1);
+
+  &:hover {
+    transform: translateY(-0.3125rem);
+    box-shadow: 0 0.3125rem 0.9375rem rgba(110, 69, 226, 0.1);
+  }
+
+  &.active {
+    border-left: 0.25rem solid #6e45e2;
+    background-color: rgba(110, 69, 226, 0.03);
+  }
+}
+
+.course-card-header {
+  @include flex-between;
+  align-items: flex-start;
+  margin-bottom: $space-4;
+
+  h4 {
+    margin: 0;
+    @include fluid-type($text-base, $text-lg);
+    color: #1a1a2e;
+    flex: 1;
+  }
+}
+
+.course-level {
+  background: rgba(110, 69, 226, 0.1);
+  color: #6e45e2;
+  padding: $space-1 * 0.75 $space-2 * 1.25;
+  border-radius: $radius-md;
+  font-size: $text-xs * 1.04;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: $space-2 * 1.25;
+  margin: $space-4 0;
+}
+
+.progress-bar {
+  flex-grow: 1;
+  height: 0.5rem;
+  background: #f0f0f0;
+  border-radius: $radius-sm * 0.5;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6e45e2, #88d3ce);
+  border-radius: $radius-sm * 0.5;
+  transition: width 0.5s ease;
+}
+
+.progress-container span {
+  font-size: $text-sm;
+  font-weight: 500;
+  color: #6e45e2;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.course-meta {
+  margin-top: $space-2 * 1.25;
+  font-size: $text-xs;
+  color: #666;
+}
+
+// -----------------------------------------------------------------------------
+// Course details
+// -----------------------------------------------------------------------------
+.course-details {
+  background: white;
+  padding: $space-8 * 0.9375;
+  border-radius: $radius-md;
+  margin-top: $space-5;
+  box-shadow: 0 0.25rem 1.25rem rgba(0, 0, 0, 0.08);
+  border: 0.0625rem solid rgba(110, 69, 226, 0.15);
+}
+
+.course-details-header {
+  @include flex-between;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+  gap: $space-4;
+
+  h3 {
+    margin: 0;
+    @include fluid-type($text-xl, $text-2xl);
+    color: #1a1a2e;
+  }
+
+  @include respond(sm) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.course-link {
+  color: #6e45e2;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $text-sm * 1.056;
+  transition: $transition-fast;
+
+  &:hover {
+    text-decoration: underline;
+    color: #5a36c7;
+  }
+}
+
+.course-progress {
+  background: rgba(110, 69, 226, 0.05);
+  padding: $space-4 $space-5;
+  border-radius: $radius-sm;
+  margin-bottom: $space-6;
+  border: 0.0625rem dashed rgba(110, 69, 226, 0.2);
+}
+
+.progress-info {
+  @include flex-between;
+
+  span {
+    font-size: $text-sm * 1.056;
+    color: #555;
+
+    &:first-child {
+      font-weight: 500;
+      color: #6e45e2;
+    }
+  }
+}
+
+.course-program {
+  margin-top: $space-5;
+
+  h4 {
+    margin-top: 0;
+    margin-bottom: $space-5;
+    color: #1a1a2e;
+    @include fluid-type($text-lg, $text-xl);
+    padding-bottom: $space-2 * 1.25;
+    border-bottom: 0.0625rem solid #eee;
+  }
+
+  ul { padding: 0; margin: 0; }
+
+  li {
+    padding: $space-4 * 1.125;
+    margin-bottom: $space-3;
+    background: white;
+    border-radius: $radius-sm;
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.04);
+    border-left: 0.1875rem solid transparent;
+    transition: $transition-fast;
+
+    &.completed {
+      border-left-color: #6e45e2;
+      background-color: rgba(110, 69, 226, 0.03);
+    }
+  }
+}
+
+.lesson-info {
+  @include flex-between;
+  margin-bottom: $space-2;
+  align-items: center;
+}
+
+.lesson-title {
+  font-weight: 500;
+  color: #1a1a2e;
+  font-size: $text-base;
+}
+
+.lesson-duration {
+  color: #666;
+  font-size: $text-sm * 0.94;
+  background: rgba(0, 0, 0, 0.03);
+  padding: $space-1 * 0.75 $space-2;
+  border-radius: $radius-md;
+}
+
+.lesson-description {
+  color: #666;
+  font-size: $text-sm;
+  margin: $space-2 0 $space-3;
+  line-height: 1.5;
+}
+
+.completion-toggle {
+  background: rgba(110, 69, 226, 0.1);
+  color: #6e45e2;
+  border: none;
+  padding: $space-2 $space-4;
+  border-radius: $radius-sm * 0.75;
+  cursor: pointer;
+  font-size: $text-sm * 0.94;
+  font-weight: 500;
+  transition: $transition-fast;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+
+  &.completed { background: rgba(110, 69, 226, 0.2); }
+  &:hover     { background: rgba(110, 69, 226, 0.3); }
+}
+
+// -----------------------------------------------------------------------------
+// Status messages
+// -----------------------------------------------------------------------------
+.loading {
+  @include fluid-type($text-xl, $text-2xl);
+  color: #88d3ce;
+  text-align: center;
+  margin-top: $space-12 * 0.83;
+}
+
+.error,
+.error-message {
+  background-color: #ff4d4f;
+  color: white;
+  padding: $space-4 $space-5;
+  border-radius: $radius-sm;
+  max-width: 37.5rem;
+  margin: $space-5 auto;
+  font-weight: 600;
+  box-shadow: 0 0 0.625rem rgba(255, 77, 79, 0.7);
+  text-align: center;
+}
+
+.success-message {
+  background-color: #52c41a;
+  color: white;
+  padding: $space-4 $space-5;
+  border-radius: $radius-sm;
+  max-width: 37.5rem;
+  margin: $space-5 auto;
+  font-weight: 600;
+  box-shadow: 0 0 0.625rem rgba(82, 196, 26, 0.7);
+  text-align: center;
+}

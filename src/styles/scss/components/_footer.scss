@@ -1,0 +1,239 @@
+// =============================================================================
+// FOOTER COMPONENT
+// @description: Multi-column footer with wave SVG, social links, legal.
+// Improvements: @each for animation delays, nested hover states, rem units.
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Keyframes
+// -----------------------------------------------------------------------------
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(1.25rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// -----------------------------------------------------------------------------
+// Footer
+// -----------------------------------------------------------------------------
+.footer {
+  position: relative;
+  background-color: var(--color-text);
+  color: var(--color-white);
+  padding-top: $space-20 * 0.625; // ~50px → 3.125rem
+  overflow: hidden;
+
+  // Wave decoration
+  &-wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6.25rem;
+    line-height: 0;
+    transform: translateY(-99%);
+
+    svg {
+      position: relative;
+      display: block;
+      width: calc(100% + 0.08125rem);
+      height: 6.25rem;
+    }
+
+    .shape-fill { fill: var(--color-text); }
+  }
+
+  // Main grid
+  &-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15.625rem, 1fr));
+    gap: $space-10;
+    margin-bottom: $space-16 * 0.9375;
+
+    // Staggered fade-in via @each
+    @for $i from 1 through 4 {
+      & > *:nth-child(#{$i}) {
+        animation: fadeInUp 0.6s ease-out #{$i * 0.1}s forwards;
+        opacity: 0;
+      }
+    }
+
+    @include respond(md) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @include respond(sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // About column
+  &-about {
+    max-width: 18.75rem;
+
+    @include respond(md) {
+      grid-column: span 2;
+      max-width: 100%;
+    }
+
+    @include respond(sm) {
+      grid-column: span 1;
+    }
+  }
+
+  &-logo {
+    font-family: $font-ui;
+    @include fluid-type($text-xl, $text-3xl);
+    font-weight: 700;
+    margin-bottom: $space-5;
+    color: var(--color-white);
+
+    span:first-child { color: var(--color-primary-light); }
+  }
+
+  &-description {
+    color: var(--color-text-light);
+    margin-bottom: $space-6;
+    line-height: 1.6;
+  }
+
+  // Social icons
+  &-social {
+    display: flex;
+    gap: $space-4;
+
+    a {
+      display: inline-block;
+      transition: $transition-base;
+
+      &:hover { transform: translateY(-0.1875rem) scale(1.1); }
+    }
+  }
+
+  // Section title
+  &-title {
+    font-family: $font-ui;
+    @include fluid-type($text-base, $text-xl);
+    font-weight: 600;
+    margin-bottom: $space-5;
+    color: var(--color-white);
+    position: relative;
+    padding-bottom: $space-2;
+
+    &::after {
+      @include pseudo;
+      bottom: 0;
+      left: 0;
+      width: 3.125rem;
+      height: 0.125rem;
+      background-color: var(--color-primary-light);
+    }
+  }
+
+  // Link lists (shared between footer-links and footer-courses)
+  &-links,
+  &-courses {
+    ul { padding: 0; margin: 0; }
+
+    li { margin-bottom: $space-3; }
+
+    a {
+      color: var(--color-text-light);
+      text-decoration: none;
+      transition: $transition-base;
+      position: relative;
+
+      &:hover {
+        color: var(--color-primary-light);
+        padding-left: $space-2;
+      }
+
+      &::before {
+        @include pseudo($pos: absolute, $content: '→');
+        left: -0.9375rem;
+        opacity: 0;
+        transition: $transition-base;
+        color: var(--color-primary-light);
+      }
+
+      &:hover::before {
+        opacity: 1;
+        left: -0.625rem;
+      }
+    }
+  }
+
+  // Bottom bar
+  &-bottom {
+    border-top: 0.0625rem solid rgba(255, 255, 255, 0.1);
+    padding: $space-6 0;
+    @include flex-column;
+    align-items: center;
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: $text-sm;
+
+    @include respond(sm) {
+      flex-direction: column;
+      gap: $space-2;
+    }
+  }
+
+  &-legal {
+    display: flex;
+    gap: $space-5;
+    margin-top: $space-4;
+
+    a {
+      color: var(--color-text-light);
+      text-decoration: none;
+      transition: $transition-base;
+
+      &:hover { color: var(--color-primary-light); }
+    }
+
+    @include respond(sm) {
+      flex-direction: column;
+      gap: $space-2;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Contact list
+// -----------------------------------------------------------------------------
+.contact {
+  &-list {
+    padding: 0;
+    margin: 0;
+  }
+
+  &-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: $space-4;
+    color: var(--color-text-light);
+  }
+
+  &-icon {
+    margin-right: $space-3;
+    color: var(--color-primary-light);
+    font-size: $text-lg;
+    margin-top: 0.1875rem;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Social icon
+// -----------------------------------------------------------------------------
+.social-icon {
+  font-size: $text-xl;
+  color: var(--color-white);
+  transition: $transition-base;
+
+  &:hover {
+    color: var(--color-primary-light);
+    filter: drop-shadow(0 0.125rem 0.25rem rgba(67, 97, 238, 0.3));
+  }
+}

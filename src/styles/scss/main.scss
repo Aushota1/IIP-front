@@ -1,0 +1,30 @@
+// =============================================================================
+// MAIN ENTRY POINT — 7-1 Architecture
+// =============================================================================
+// Layer order matters: abstracts → base → layout → components → pages
+// =============================================================================
+
+// 1. Abstracts (variables, mixins — no CSS output)
+@use 'abstracts' as *;
+
+// 2. Base (reset, typography)
+@use 'base/reset';
+@use 'base/typography';
+
+// 3. Layout (container, grid)
+@use 'layout/container';
+
+// 4. Components
+@use 'components/buttons';
+@use 'components/header';
+@use 'components/footer';
+@use 'components/course-card';
+@use 'components/sidebar';
+@use 'components/testimonial';
+
+// 5. Pages
+@use 'pages/all-courses';
+@use 'pages/auth';
+@use 'pages/course-page';
+@use 'pages/user-profile';
+@use 'pages/loading-spinner';

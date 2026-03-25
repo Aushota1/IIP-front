@@ -1,0 +1,8 @@
+// =============================================================================
+// ABSTRACTS INDEX
+// @forward re-exports all abstracts so consumers can do:
+//   @use '../abstracts' as *;
+// =============================================================================
+
+@forward 'variables';
+@forward 'mixins';

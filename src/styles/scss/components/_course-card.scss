@@ -1,0 +1,194 @@
+// =============================================================================
+// COURSE CARD COMPONENT
+// @description: Glass-morphism card with hover animations.
+// Improvements: mixin for glass effect, nested hover states, rem units.
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Keyframes
+// -----------------------------------------------------------------------------
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-0.5rem); }
+}
+
+// -----------------------------------------------------------------------------
+// Card
+// -----------------------------------------------------------------------------
+.glass-course-card {
+  position: relative;
+  height: 26.25rem; // 420px
+  border-radius: $radius-xl;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0.9375rem 2.5rem rgba(0, 0, 0, 0.2);
+  transition: $transition-slow;
+
+  &:hover {
+    transform: translateY(-0.9375rem);
+    box-shadow: 0 1.5625rem 3.125rem rgba(0, 0, 0, 0.3);
+
+    .glass-overlay {
+      backdrop-filter: blur(0.3125rem);
+      background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 100%);
+    }
+
+    .price-bubble {
+      transform: scale(1.1);
+      background: white;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .level-badge {
+      background: var(--color-primary-dark);
+      box-shadow: 0 0.375rem 1rem rgba(63, 81, 181, 0.4);
+    }
+  }
+
+  @include respond(md) {
+    height: 23.75rem; // 380px
+
+    .action-button {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Overlay
+// -----------------------------------------------------------------------------
+.glass-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+  backdrop-filter: blur(0.125rem);
+  transition: $transition-slow;
+}
+
+// -----------------------------------------------------------------------------
+// Card content
+// -----------------------------------------------------------------------------
+.card-content {
+  position: relative;
+  height: 100%;
+  padding: $space-8 * 0.9375; // ~30px
+  @include flex-column;
+  color: white;
+  z-index: $z-base + 1;
+}
+
+// -----------------------------------------------------------------------------
+// Level badge
+// -----------------------------------------------------------------------------
+.level-badge {
+  align-self: flex-start;
+  padding: $space-2 $space-5;
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  font-weight: 700;
+  margin-bottom: $space-5;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  box-shadow: 0 0.25rem 0.75rem rgba(63, 81, 181, 0.3);
+  transition: $transition-base;
+
+  &.продвинутый {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+  }
+
+  &.средний {
+    background: rgba(241, 196, 15, 0.2);
+    border: 1px solid rgba(241, 196, 15, 0.4);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Text content
+// -----------------------------------------------------------------------------
+.text-content {
+  margin-top: auto;
+  margin-bottom: $space-8 * 0.9375;
+
+  h3 {
+    @include fluid-type($text-xl, $text-2xl);
+    margin: 0 0 $space-4 0;
+    line-height: 1.3;
+    color: white;
+    text-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.3);
+  }
+
+  p {
+    font-size: $text-base;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin: 0;
+    color: white;
+    text-shadow: 0 0.0625rem 0.1875rem rgba(0,0,0,0.2);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Card footer
+// -----------------------------------------------------------------------------
+.card-footer {
+  @include flex-between;
+}
+
+.duration-pill {
+  @include glass(0.625rem, 0.15, 0.2);
+  border-radius: $radius-full;
+  padding: $space-2 $space-4 * 1.125;
+  font-size: $text-sm;
+}
+
+.price-bubble {
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  border-radius: $radius-full;
+  padding: $space-3 $space-5 * 1.1;
+  @include fluid-type($text-lg, $text-xl);
+  font-weight: 800;
+  box-shadow: 0 0.3125rem 0.9375rem rgba(0,0,0,0.2);
+  transform: scale(1);
+  transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+// -----------------------------------------------------------------------------
+// Action button
+// -----------------------------------------------------------------------------
+.action-button {
+  position: absolute;
+  bottom: $space-8 * 0.9375;
+  left: $space-8 * 0.9375;
+  right: $space-8 * 0.9375;
+  @include flex-between;
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  border-radius: $radius-full;
+  padding: $space-4 * 1.125 $space-8 * 0.9375;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 0.3125rem 1.25rem rgba(0,0,0,0.2);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+
+  &:hover .button-arrow {
+    transform: rotate(90deg);
+    background: var(--color-primary-dark);
+  }
+}
+
+.button-arrow {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: var(--color-primary);
+  color: white;
+  border-radius: $radius-full;
+  @include flex-center;
+  transition: $transition-base;
+}

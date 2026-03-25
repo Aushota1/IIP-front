@@ -1,0 +1,165 @@
+// =============================================================================
+// MIXINS
+// @description: Reusable SCSS mixins for layout, typography, and responsive.
+// Import via: @use '../abstracts/mixins' as *;
+// =============================================================================
+
+@use 'variables' as *;
+@use 'sass:math';
+
+// -----------------------------------------------------------------------------
+// Responsive breakpoints
+// Usage: @include respond(md) { ... }
+// -----------------------------------------------------------------------------
+@mixin respond($bp) {
+  @if $bp == sm {
+    @media (max-width: $bp-sm) { @content; }
+  } @else if $bp == md {
+    @media (max-width: $bp-md) { @content; }
+  } @else if $bp == lg {
+    @media (max-width: $bp-lg) { @content; }
+  } @else if $bp == xl {
+    @media (max-width: $bp-xl) { @content; }
+  } @else {
+    @media (max-width: $bp) { @content; }
+  }
+}
+
+// Respond above breakpoint (min-width)
+@mixin respond-up($bp) {
+  @if $bp == sm {
+    @media (min-width: $bp-sm) { @content; }
+  } @else if $bp == md {
+    @media (min-width: $bp-md) { @content; }
+  } @else if $bp == lg {
+    @media (min-width: $bp-lg) { @content; }
+  } @else if $bp == xl {
+    @media (min-width: $bp-xl) { @content; }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Flexbox helpers
+// -----------------------------------------------------------------------------
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// -----------------------------------------------------------------------------
+// Fluid typography using clamp()
+// @param $min-size  — minimum font size (rem)
+// @param $max-size  — maximum font size (rem)
+// @param $min-width — viewport width where min applies (default: 20rem / 320px)
+// @param $max-width — viewport width where max applies (default: 75rem / 1200px)
+// Usage: @include fluid-type(1rem, 2rem);
+// -----------------------------------------------------------------------------
+@mixin fluid-type($min-size, $max-size, $min-width: 20rem, $max-width: 75rem) {
+  font-size: clamp(
+    #{$min-size},
+    calc(#{$min-size} + (#{strip-unit($max-size - $min-size)}) * ((100vw - #{$min-width}) / #{strip-unit($max-width - $min-width)})),
+    #{$max-size}
+  );
+}
+
+// Helper: strip unit for fluid-type math
+@function strip-unit($number) {
+  @return math.div($number, ($number * 0 + 1));
+}
+
+// -----------------------------------------------------------------------------
+// Glass morphism card
+// -----------------------------------------------------------------------------
+@mixin glass($blur: 12px, $bg-opacity: 0.1, $border-opacity: 0.2) {
+  background: rgba(255, 255, 255, $bg-opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, $border-opacity);
+}
+
+// -----------------------------------------------------------------------------
+// Gradient text
+// -----------------------------------------------------------------------------
+@mixin gradient-text($from, $to, $direction: 135deg) {
+  background: linear-gradient($direction, $from, $to);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// -----------------------------------------------------------------------------
+// Pseudo-element base (::before / ::after)
+// -----------------------------------------------------------------------------
+@mixin pseudo($display: block, $pos: absolute, $content: '') {
+  content: $content;
+  display: $display;
+  position: $pos;
+}
+
+// -----------------------------------------------------------------------------
+// Truncate text with ellipsis
+// -----------------------------------------------------------------------------
+@mixin truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// -----------------------------------------------------------------------------
+// Visually hidden (accessible)
+// -----------------------------------------------------------------------------
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// -----------------------------------------------------------------------------
+// Card base
+// -----------------------------------------------------------------------------
+@mixin card($radius: $radius-lg, $shadow: $shadow-md) {
+  background: var(--color-surface);
+  border-radius: $radius;
+  box-shadow: $shadow;
+}
+
+// -----------------------------------------------------------------------------
+// Button reset
+// -----------------------------------------------------------------------------
+@mixin btn-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+// -----------------------------------------------------------------------------
+// Hover lift effect
+// -----------------------------------------------------------------------------
+@mixin hover-lift($y: -0.3125rem, $shadow: $shadow-lg) {
+  transition: $transition-base;
+  &:hover {
+    transform: translateY($y);
+    box-shadow: $shadow;
+  }
+}

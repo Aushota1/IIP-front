@@ -1,0 +1,57 @@
+// =============================================================================
+// SIDEBAR COMPONENT
+// =============================================================================
+
+@use '../abstracts' as *;
+
+.sidebar-toggle {
+  position: fixed;
+  top: $space-4;
+  left: $space-4;
+  z-index: $z-top;
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--color-border);
+  font-size: $text-2xl * 0.9;
+  padding: $space-2 $space-3;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -16.25rem; // -260px
+  width: 15rem;    // 240px
+  height: 100vh;
+  background-color: var(--color-surface);
+  box-shadow: 0.125rem 0 0.75rem rgba(0, 0, 0, 0.08);
+  padding: $space-6 $space-4;
+  transition: left 0.3s ease;
+  z-index: $z-modal;
+
+  &.open { left: 0; }
+
+  &-nav {
+    @include flex-column;
+    gap: $space-4;
+    margin-top: $space-16 * 0.9375;
+
+    a,
+    button {
+      font-size: $text-base;
+      text-decoration: none;
+      color: var(--color-text);
+      @include btn-reset;
+      text-align: left;
+      padding: $space-2 * 1.25 $space-3 * 1.17;
+      border-radius: $radius-sm;
+      transition: $transition-fast;
+
+      &:hover {
+        background-color: var(--color-bg-light);
+        color: var(--color-primary-dark);
+      }
+    }
+  }
+}

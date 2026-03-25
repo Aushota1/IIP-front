@@ -1,0 +1,264 @@
+// =============================================================================
+// HEADER COMPONENT
+// @description: Fixed top navigation with mobile hamburger menu.
+// Improvements: nested selectors, BEM modifiers, media query inside selector,
+//               variables replace magic numbers, mixin for flex layout.
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Keyframes
+// -----------------------------------------------------------------------------
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+  70%  { box-shadow: 0 0 0 0.625rem rgba(67, 97, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+}
+
+// -----------------------------------------------------------------------------
+// Header
+// -----------------------------------------------------------------------------
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--header-height);
+  background-color: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  z-index: $z-modal;
+  transition: $transition-base;
+
+  // Scrolled modifier
+  &.scrolled {
+    height: var(--header-height-scrolled);
+    background-color: rgba(10, 10, 10, 0.6);
+    backdrop-filter: blur(0.75rem);
+    box-shadow: 0 0.25rem 1.875rem rgba(0, 0, 0, 0.15);
+  }
+
+  // Mobile menu open state — show actions
+  &.menu-open .header-actions {
+    display: flex;
+    position: fixed;
+    bottom: $space-8;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: $z-top;
+  }
+}
+
+.header-inner {
+  @include flex-between;
+  height: 100%;
+}
+
+// -----------------------------------------------------------------------------
+// Logo
+// -----------------------------------------------------------------------------
+.logo {
+  @include flex-center;
+  font-family: $font-ui;
+  @include fluid-type($text-4xl, $text-5xl);
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: $transition-smooth;
+  z-index: $z-top;
+  margin-top: $space-1;
+
+  &:hover {
+    transform: translateY(-0.125rem);
+
+    .logo-highlight::after {
+      height: 0.75rem;
+      background-color: rgba(67, 97, 238, 0.3);
+    }
+  }
+
+  &-text    { color: var(--color-primary); }
+  &-dot     { color: #b39ddb; }
+
+  &-highlight {
+    position: relative;
+    color: var(--color-primary);
+
+    &::after {
+      @include pseudo;
+      bottom: 0.125rem;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background-color: rgba(67, 97, 238, 0.2);
+      z-index: -1;
+      transition: $transition-base;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Navigation
+// -----------------------------------------------------------------------------
+.nav {
+  display: flex;
+  align-items: center;
+
+  &-list {
+    display: flex;
+    gap: $space-8;
+    margin: 0;
+    padding: 0;
+  }
+
+  &-item { position: relative; }
+
+  &-link {
+    position: relative;
+    font-family: $font-ui;
+    font-weight: 500;
+    @include fluid-type($text-base, $text-lg);
+    color: var(--color-text);
+    text-decoration: none;
+    padding: $space-2 0;
+    transition: $transition-base;
+
+    &:hover,
+    &.active {
+      color: var(--color-primary);
+
+      .nav-link-underline { width: 100%; }
+    }
+
+    &.active { font-weight: 600; }
+  }
+
+  &-link-underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0.125rem;
+    background-color: var(--color-primary);
+    transition: $transition-base;
+  }
+
+  // Mobile overlay
+  @include respond(lg) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: white;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    clip-path: circle(0px at 90% -10%);
+    transition: all 0.8s ease-out;
+    pointer-events: none;
+
+    &.open {
+      clip-path: circle(93.75rem at 90% -10%);
+      pointer-events: all;
+    }
+
+    .nav-list {
+      flex-direction: column;
+      align-items: center;
+      gap: $space-10;
+    }
+
+    .nav-link {
+      @include fluid-type($text-xl, $text-2xl);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Header actions (CTA buttons)
+// -----------------------------------------------------------------------------
+.header-actions {
+  @include flex-center;
+  gap: $space-4;
+  padding-top: $space-2;
+
+  @include respond(lg) {
+    display: none;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Buttons
+// -----------------------------------------------------------------------------
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 0.4375rem 1.5rem; // ~7px 24px
+  border-radius: $radius-full;
+  font-family: $font-ui;
+  font-weight: 500;
+  font-size: $text-base;
+  cursor: pointer;
+  transition: $transition-base;
+  border: none;
+
+  &-outline {
+    background: transparent;
+    border: 0.125rem solid var(--color-primary);
+    color: var(--color-primary);
+
+    &:hover {
+      background: var(--color-primary);
+      color: white;
+      transform: translateY(-0.125rem);
+      box-shadow: 0 0.25rem 0.9375rem rgba(67, 97, 238, 0.3);
+    }
+  }
+
+  &-primary {
+    background: var(--color-primary);
+    color: white;
+
+    &:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-0.125rem);
+      box-shadow: 0 0.25rem 1.25rem rgba(67, 97, 238, 0.4);
+    }
+  }
+
+  &-glow { animation: pulse 2s infinite; }
+}
+
+// -----------------------------------------------------------------------------
+// Mobile toggle
+// -----------------------------------------------------------------------------
+.mobile-menu-toggle {
+  @include btn-reset;
+  display: none;
+  color: var(--color-text);
+  font-size: $text-2xl;
+  z-index: $z-top;
+
+  @include respond(lg) {
+    display: block;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// User avatar
+// -----------------------------------------------------------------------------
+.user-avatar {
+  width: 2.25rem;  // 36px
+  height: 2.25rem;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, #8e2de2, #4a00e0);
+  color: #fff;
+  font-weight: bold;
+  font-size: $text-base;
+  @include flex-center;
+  border: none;
+  cursor: pointer;
+}
