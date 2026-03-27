@@ -627,11 +627,11 @@ const Home = () => {
         /* Hero Section */
         .hero-section {
           position: relative;
-          min-height: 100vh;
+          min-height: unset;
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 120px 0 80px;
+          padding: 10rem 0 3rem;
           overflow: hidden;
           background: linear-gradient(135deg, #121216 0%, #0a0a0a 100%);
         }
@@ -656,6 +656,7 @@ const Home = () => {
           flex: 1;
           max-width: clamp(18rem, 40vw, 600px);
           position: relative;
+          padding-right: 2.5rem;
         }
 
         .image-wrapper {
@@ -713,7 +714,7 @@ const Home = () => {
 
         /* Video Section */
         .video-section {
-          padding: 120px 0;
+          padding: 4rem 0;
           background: linear-gradient(180deg, #121216 0%, #0a0a0a 100%);
           position: relative;
         }
@@ -1113,10 +1114,10 @@ const Home = () => {
           }
         }
 
-        @media (max-width: 1025px) {
+        @media (max-width: 1026px) {
           .hero-section {
             min-height: unset;
-            padding: 5rem 0 2rem;
+            padding: 8rem 0 2rem;
           }
         }
 

@@ -116,8 +116,8 @@ $z-top:     1001;
   --color-text-light: #8d99ae;
 
   // Header
-  --header-height:         5rem;    // 80px
-  --header-height-scrolled: 4.375rem; // 70px
+  --header-height:         7rem;
+  --header-height-scrolled: 6rem;
 
   // Transitions (exposed for JS-driven components)
   --transition: #{$transition-base};

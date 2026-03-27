@@ -1,43 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { courses } from './courses';
-import './AllCourses.css';
-import '../components/CourseCard.css';
+import { getAllCourses } from '../services/courses';
 
 const AllCourses = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState('all');
   const [filteredCourses, setFilteredCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState({});
   const [favorites, setFavorites] = useState({});
 
   useEffect(() => {
     const savedFavorites = JSON.parse(localStorage.getItem('courseFavorites')) || {};
     setFavorites(savedFavorites);
-    filterCourses();
-  }, [searchTerm, filterLevel]);
+    getAllCourses().then(setAllCourses);
+  }, []);
 
-  const filterCourses = () => {
-    let result = Object.entries(courses);
-    
+  useEffect(() => {
+    let result = Object.entries(allCourses);
     if (searchTerm) {
-      result = result.filter(([_, course]) => 
+      result = result.filter(([_, course]) =>
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
     if (filterLevel !== 'all') {
       result = result.filter(([_, course]) => course.level === filterLevel);
     }
-    
     setFilteredCourses(result);
-  };
-
-  const toggleFavorite = (slug) => {
-    const newFavorites = { ...favorites, [slug]: !favorites[slug] };
-    setFavorites(newFavorites);
-    localStorage.setItem('courseFavorites', JSON.stringify(newFavorites));
-  };
+  }, [searchTerm, filterLevel, allCourses]);
 
   const levels = ['all', 'Начальный', 'Средний', 'Продвинутый'];
 

@@ -67,7 +67,6 @@
   text-decoration: none;
   transition: $transition-smooth;
   z-index: $z-top;
-  margin-top: $space-1;
 
   &:hover {
     transform: translateY(-0.125rem);
@@ -182,7 +181,7 @@
 .header-actions {
   @include flex-center;
   gap: $space-4;
-  padding-top: $space-2;
+  align-self: center;
 
   @include respond(lg) {
     display: none;

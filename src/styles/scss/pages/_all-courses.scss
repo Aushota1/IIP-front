@@ -11,6 +11,7 @@
   padding: 0 $space-5;
   font-family: $font-main;
   color: var(--color-text);
+  background-color: var(--color-bg);
 }
 
 // -----------------------------------------------------------------------------
@@ -22,6 +23,7 @@
   padding: $space-12 $space-8;
   border-radius: $radius-lg;
   margin: $space-8 0;
+  margin-top: 220px;
   box-shadow: 0 0.625rem 1.875rem rgba(67, 97, 238, 0.3);
   text-align: center;
 

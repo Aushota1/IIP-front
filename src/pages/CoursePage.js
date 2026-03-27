@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Particles } from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
 import './CoursePage.css';
-import { courses } from './courses';
+import { getCourseBySlug } from '../services/courses';
 
 // Импорт функции записи на курс
 import { enrollOnCourse } from '../api'; // проверь путь
 
 const CoursePage = () => {
   const { courseSlug } = useParams();
+  const [course, setCourse] = useState(null);
+  const [courseLoading, setCourseLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
-  const [enrollSuccess, setEnrollSuccess] = useState(null);  // null | true | false
+  const [enrollSuccess, setEnrollSuccess] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [activeTab, setActiveTab] = useState('about');
   const { scrollYProgress } = useScroll();
-  const course = courses[courseSlug];
 
-  // Параллакс эффекты
-  const y1 = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
+  useEffect(() => {
+    setCourseLoading(true);
+    getCourseBySlug(courseSlug)
+      .then(setCourse)
+      .catch(() => setCourse(null))
+      .finally(() => setCourseLoading(false));
+  }, [courseSlug]);
+
   const opacity = useTransform(scrollYProgress, [0.8, 0.9], [1, 0]);
 
   // Инициализация частиц
   const particlesInit = async (main) => {
     await loadFull(main);
   };
+
+  if (courseLoading) return <div className="not-found-container"><p>Загрузка...</p></div>;
 
   if (!course) return (
     <motion.div 
