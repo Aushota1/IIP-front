@@ -9,7 +9,7 @@ const coursesData = {
     image: course1,
     excerpt: 'Научитесь 3D-моделированию в Blender с нуля.',
     description: 'Этот курс охватывает основы 3D-моделирования, интерфейс Blender и создание CAD-объектов.',
-    level: 'Начальный',
+    level: 'beginner',
     duration: '6 недель',
     price: 'Бесплатно',
     features: [
@@ -35,7 +35,7 @@ const coursesData = {
     image: course2,
     excerpt: 'Освойте алгоритмы и структуры данных для прохождения технических интервью.',
     description: 'Курс охватывает сортировки, графы, динамическое программирование и задачи на LeetCode.',
-    level: 'Продвинутый',
+    level: 'advanced',
     duration: '8 недель',
     price: '4 900 ₽',
     features: [
@@ -60,7 +60,7 @@ const coursesData = {
     image: course3,
     excerpt: 'Разберитесь в линейной регрессии, деревьях решений и кластеризации.',
     description: 'Курс вводит в машинное обучение, методы обучения с учителем и без, метрики.',
-    level: 'Средний',
+    level: 'intermediate',
     duration: '7 недель',
     price: '3 900 ₽',
     features: [

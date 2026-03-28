@@ -123,24 +123,19 @@
   gap: $space-4;
   margin-bottom: $space-8 * 0.9375;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.level-badge {
-  padding: $space-1 * 1.5 $space-3;
-  border-radius: $radius-full * 0.2;
-  font-weight: 600;
-  font-size: $text-sm;
-
-  &.beginner     { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
-  &.intermediate { background: rgba(250, 204, 21, 0.2); color: #facc15; }
-  &.advanced     { background: rgba(244, 63, 94, 0.2);  color: #f43f5e; }
-}
-
+.level-badge,
 .duration,
 .price {
+  display: inline-flex;
+  align-items: center;
   padding: $space-1 * 1.5 $space-3;
-  border-radius: $radius-full * 0.2;
-  background: rgba(255, 255, 255, 0.1);
+  border-radius: $radius-full;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
   font-size: $text-sm;
 }
 

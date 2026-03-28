@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Particles } from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
-import './CoursePage.css';
 import { getCourseBySlug } from '../services/courses';
 
 // Импорт функции записи на курс
@@ -29,7 +28,11 @@ const CoursePage = () => {
 
   const opacity = useTransform(scrollYProgress, [0.8, 0.9], [1, 0]);
 
-  // Инициализация частиц
+  const levelLabels = {
+    beginner: 'Начальный',
+    intermediate: 'Средний',
+    advanced: 'Продвинутый',
+  };
   const particlesInit = async (main) => {
     await loadFull(main);
   };
@@ -163,8 +166,8 @@ const CoursePage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
             >
-              <span className={`level-badge ${course.level.toLowerCase()}`}>
-                {course.level}
+              <span className={`level-badge ${course.level}`}>
+                {levelLabels[course.level] || course.level}
               </span>
               <span className="duration">{course.duration}</span>
               <span className="price">{course.price}</span>

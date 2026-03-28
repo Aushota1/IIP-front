@@ -3,7 +3,6 @@ import { Link as ScrollLink } from 'react-scroll';
 import { FaUser, FaUserPlus, FaBars, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import './Header.css';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);

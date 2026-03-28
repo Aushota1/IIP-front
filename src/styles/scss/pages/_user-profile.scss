@@ -18,13 +18,17 @@
 // -----------------------------------------------------------------------------
 // Container
 // -----------------------------------------------------------------------------
+.profile-page-wrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
 .profile-container {
   max-width: $bp-xl;
   margin: 0 auto;
   padding: $space-5;
   font-family: $font-main;
   color: #333;
-  background-color: var(--color-bg-light);
 }
 
 // -----------------------------------------------------------------------------

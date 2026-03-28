@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { registerUser } from '../api';
-import './AuthPages.css';
+import { registerUser } from '../services/auth';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -36,37 +35,44 @@ const RegisterPage = () => {
     e.preventDefault();
 
     if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
+      setError('Пожалуйста, введите корректный email');
       return;
     }
     if (formData.firstName.trim().length < 1 || formData.lastName.trim().length < 1) {
-      setError('First Name and Last Name are required');
+      setError('Имя и фамилия обязательны');
       return;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Пароль должен содержать минимум 6 символов');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match");
+      setError('Пароли не совпадают');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Ключевой момент: формируем корректный payload
       const userData = {
         email: formData.email,
-        name: (formData.firstName + ' ' + formData.lastName).trim(),
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         password: formData.password,
       };
 
-      await registerUser(userData);
-      //navigate('/login', { state: { successMessage: 'Registration successful! Please login.' } });
-      navigate('/verify-email', { state: { email: userData.email } });
+      const response = await registerUser(userData);
+      console.log('Регистрация успешна:', response);
+      
+      // Сохраняем токен
+      if (response.access_token) {
+        localStorage.setItem('token', response.access_token);
+      }
+      
+      navigate('/profile');
     } catch (err) {
-      setError(typeof err === 'string' ? err : 'Registration failed');
+      console.error('Ошибка регистрации:', err);
+      setError(err.message || 'Ошибка регистрации');
     } finally {
       setIsLoading(false);
     }
@@ -76,8 +82,8 @@ const RegisterPage = () => {
     <div className="smooth-auth-page">
       <div className="smooth-auth-container">
         <div className="smooth-auth-header">
-          <h2>Create Account</h2>
-          <p>Start your journey with us</p>
+          <h2>Создать аккаунт</h2>
+          <p>Начните свой путь вместе с нами</p>
         </div>
 
         {error && (
@@ -99,7 +105,7 @@ const RegisterPage = () => {
               required
               className={error && !validateEmail(formData.email) ? 'smooth-input-error' : ''}
             />
-            <label>Email Address</label>
+            <label>Email</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -116,7 +122,7 @@ const RegisterPage = () => {
               onChange={handleChange}
               required
             />
-            <label>First Name</label>
+            <label>Имя</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -133,7 +139,7 @@ const RegisterPage = () => {
               onChange={handleChange}
               required
             />
-            <label>Last Name</label>
+            <label>Фамилия</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -151,7 +157,7 @@ const RegisterPage = () => {
               required
               className={error && formData.password.length < 6 ? 'smooth-input-error' : ''}
             />
-            <label>Password</label>
+            <label>Пароль</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -184,7 +190,7 @@ const RegisterPage = () => {
               required
               className={error && formData.password !== formData.confirmPassword ? 'smooth-input-error' : ''}
             />
-            <label>Confirm Password</label>
+            <label>Подтвердите пароль</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -218,17 +224,17 @@ const RegisterPage = () => {
             {isLoading ? (
               <>
                 <span className="smooth-spinner"></span>
-                Registering...
+                Регистрация...
               </>
             ) : (
-              'Create Account'
+              'Создать аккаунт'
             )}
             <span className="smooth-btn-wave"></span>
           </button>
         </form>
 
         <div className="smooth-auth-footer">
-          Already have an account? <Link to="/login">Sign in</Link>
+          Уже есть аккаунт? <Link to="/login">Войти</Link>
         </div>
       </div>
     </div>

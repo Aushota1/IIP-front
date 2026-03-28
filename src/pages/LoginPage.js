@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { loginUser, fetchUserProfile } from '../api';
+import { loginUser, fetchUserProfile } from '../services/auth';
 import { useUser } from '../context/UserContext';
-import './AuthPages.css';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -43,12 +42,12 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
+      setError('Пожалуйста, введите корректный email');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Пароль должен содержать минимум 6 символов');
       return;
     }
 
@@ -69,7 +68,7 @@ const LoginPage = () => {
       localStorage.setItem('user', JSON.stringify(profile));
       navigate('/profile');
     } catch (err) {
-      setError(typeof err === 'string' ? err : 'Login failed. Please check your credentials');
+      setError(typeof err === 'string' ? err : 'Ошибка входа. Проверьте email и пароль');
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +78,8 @@ const LoginPage = () => {
     <div className="smooth-auth-page">
       <div className="smooth-auth-container">
         <div className="smooth-auth-header">
-          <h2>Welcome Back</h2>
-          <p>Continue your journey with us</p>
+          <h2>С возвращением</h2>
+          <p>Продолжите свой путь вместе с нами</p>
         </div>
 
         {successMessage && (
@@ -111,7 +110,7 @@ const LoginPage = () => {
               required
               className={error && !validateEmail(formData.email) ? 'smooth-input-error' : ''}
             />
-            <label>Email Address</label>
+            <label>Email</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -129,7 +128,7 @@ const LoginPage = () => {
               required
               className={error && formData.password.length < 6 ? 'smooth-input-error' : ''}
             />
-            <label>Password</label>
+            <label>Пароль</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">
@@ -155,7 +154,7 @@ const LoginPage = () => {
 
           <div className="smooth-form-options">
             <Link to="/forgot-password" className="smooth-forgot-password">
-              Forgot password?
+              Забыли пароль?
             </Link>
           </div>
           
@@ -169,17 +168,17 @@ const LoginPage = () => {
             {isLoading ? (
               <>
                 <span className="smooth-spinner"></span>
-                Signing In...
+                Вход...
               </>
             ) : (
-              'Sign In'
+              'Войти'
             )}
             <span className="smooth-btn-wave"></span>
           </button>
         </form>
         
         <div className="smooth-auth-footer">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
         </div>
       </div>
     </div>

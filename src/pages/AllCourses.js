@@ -29,11 +29,19 @@ const AllCourses = () => {
     setFilteredCourses(result);
   }, [searchTerm, filterLevel, allCourses]);
 
-  const levels = ['all', 'Начальный', 'Средний', 'Продвинутый'];
+  const levels = ['all', 'beginner', 'intermediate', 'advanced'];
+
+  const levelLabels = {
+    all: 'Все уровни',
+    beginner: 'Начальный',
+    intermediate: 'Средний',
+    advanced: 'Продвинутый',
+  };
 
   return (
     <div className="all-courses-page">
-      <header className="courses-header">
+      <div className="all-courses-content">
+        <header className="courses-header">
         <div className="header-content">
           <h1>Все наши курсы</h1>
           <p>Выберите курс, который подходит именно вам</p>
@@ -56,7 +64,7 @@ const AllCourses = () => {
                   className={`filter-tab ${filterLevel === level ? 'active' : ''}`}
                   onClick={() => setFilterLevel(level)}
                 >
-                  {level === 'all' ? 'Все уровни' : level}
+                  {level === 'all' ? 'Все уровни' : levelLabels[level]}
                 </button>
               ))}
             </div>
@@ -95,12 +103,19 @@ const AllCourses = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
 
 const CourseCard = ({ slug, title, description, duration, level, price, image }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  const levelLabels = {
+    beginner: 'Начальный',
+    intermediate: 'Средний',
+    advanced: 'Продвинутый',
+  };
 
   return (
     <div 
@@ -112,7 +127,7 @@ const CourseCard = ({ slug, title, description, duration, level, price, image })
       <div className="glass-overlay"></div>
       
       <div className="card-content">
-        <div className={`level-badge ${level.toLowerCase()}`}>{level}</div>
+        <div className={`level-badge ${level}`}>{levelLabels[level] || level}</div>
         
         <div className="text-content">
           <h3>{title}</h3>

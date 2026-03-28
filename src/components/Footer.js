@@ -8,7 +8,6 @@ import {
   FaVk, 
   FaYoutube 
 } from 'react-icons/fa';
-import './Footer.css';
 
 const FOOTER_DATA = {
   popularCourses: [

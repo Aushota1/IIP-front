@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  fetchUserProfile, 
-  getCourseProgress, 
-  completeLesson, 
-  undoCompleteLesson, 
-  getActivityLogs, 
+import { fetchUserProfile } from '../services/auth';
+import {
+  getCourseProgress,
+  completeLesson,
+  undoCompleteLesson,
+  getActivityLogs,
   getActivityStreak,
-  getCompletedTasksCount
-} from '../api';
+  getCompletedTasksCount,
+} from '../services/progress';
 import { courses } from './courses'; // локальные курсы с программой
 import LoadingSpinner from '../components/LoadingSpinner';
 import Sidebar from '../components/Sidebar';
-import '../components/Sidebar.css';
-import './UserProfile.css';
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -158,10 +156,11 @@ const UserProfile = () => {
   const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
 
   return (
-    <div className="user-profile-layout">
-      <Sidebar />
+    <div className="profile-page-wrapper">
+      <div className="user-profile-layout">
+        <Sidebar />
 
-      <div className="profile-container">
+        <div className="profile-container">
         {error && <div className="error-message">{error}</div>}
 
         <header className="profile-header">
@@ -301,6 +300,7 @@ const UserProfile = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

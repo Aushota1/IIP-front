@@ -6,12 +6,16 @@
 @use 'sass:list';
 
 .all-courses-page {
-  max-width: $bp-xl;
-  margin: 0 auto;
-  padding: 0 $space-5;
-  font-family: $font-main;
-  color: var(--color-text);
-  background-color: var(--color-bg);
+  min-height: 100vh;
+  background-color: #ffffff;
+  
+  .all-courses-content {
+    max-width: $bp-xl;
+    margin: 0 auto;
+    padding: $space-5 $space-5 $space-16;
+    font-family: $font-main;
+    color: var(--color-text);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -23,7 +27,6 @@
   padding: $space-12 $space-8;
   border-radius: $radius-lg;
   margin: $space-8 0;
-  margin-top: 220px;
   box-shadow: 0 0.625rem 1.875rem rgba(67, 97, 238, 0.3);
   text-align: center;
 
@@ -343,14 +346,16 @@ $levels: (
   }
 }
 
-.duration,
-.price {
-  padding: $space-1 $space-3;
-  border-radius: $radius-full * 0.2;
-  font-size: $text-xs;
-  font-weight: 600;
-  background: var(--color-bg-light);
-  color: var(--color-text-muted);
+.all-courses-page {
+  .duration,
+  .price {
+    padding: $space-1 $space-3;
+    border-radius: $radius-full * 0.2;
+    font-size: $text-xs;
+    font-weight: 600;
+    background: var(--color-bg-light);
+    color: var(--color-text-muted);
+  }
 }
 
 .progress-container {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './CourseCard.css';
 
 const CourseCard = ({ slug, title, description, duration, level, price, image }) => {
   const [isHovered, setIsHovered] = useState(false);

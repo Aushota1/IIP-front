@@ -1,5 +1,4 @@
 import React from 'react';
-import './Testimonial.css';
 
 const Testimonial = ({ name, role, text, avatar }) => {
   return (
