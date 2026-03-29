@@ -86,7 +86,7 @@ const Footer = () => {
         <div className="footer-content">
           <div className="footer-about">
             <Link to="/" className="footer-logo" onClick={handleLinkClick}>
-              <span>И</span>IП
+              <img src="/logo.png" alt="ИIП" className="footer-logo-image" />
             </Link>
             <p className="footer-description">
               Современная платформа онлайн-образования с курсами от практикующих экспертов.

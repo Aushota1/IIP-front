@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { Particles } from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
 import { getCourseBySlug } from '../services/courses';
+import Header from '../components/Header';
 
 // Импорт функции записи на курс
 import { enrollOnCourse } from '../api'; // проверь путь
@@ -22,7 +23,10 @@ const CoursePage = () => {
     setCourseLoading(true);
     getCourseBySlug(courseSlug)
       .then(setCourse)
-      .catch(() => setCourse(null))
+      .catch((err) => {
+        console.error('Ошибка загрузки курса:', err);
+        setCourse(null);
+      })
       .finally(() => setCourseLoading(false));
   }, [courseSlug]);
 
@@ -75,6 +79,7 @@ const CoursePage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      <Header />
       {/* Интерактивный фон с частицами */}
       <div className="particles-container">
         <Particles

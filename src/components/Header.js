@@ -40,9 +40,7 @@ const Header = () => {
             className="logo"
             onSetActive={() => handleSetActive('home')}
           >
-            <span className="logo-text">И</span>
-            <span className="logo-highlight">IП</span>
-            <span className="logo-dot">.</span>
+            <img src="/logo.png" alt="ИIП" className="logo-image" />
           </ScrollLink>
 
           <button
@@ -77,6 +75,11 @@ const Header = () => {
           <div className="header-actions">
             {user ? (
               <>
+                {user.role === 'admin' && (
+                  <button className="btn btn-outline" onClick={() => navigate('/admin')}>
+                    Админ
+                  </button>
+                )}
                 <button
                   className="btn user-avatar"
                   onClick={() => navigate('/profile')}

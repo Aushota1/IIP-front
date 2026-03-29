@@ -318,3 +318,31 @@
   border-radius: $radius-full;
   animation: spinner-border 0.75s linear infinite;
 }
+
+// Verify email code inputs
+.verify-code-inputs {
+  display: flex;
+  justify-content: center;
+  gap: $space-3;
+
+  input {
+    width: 3rem;
+    height: 3.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    border: 0.0625rem solid #e0e3ff;
+    border-radius: $radius-md;
+    background-color: #f9faff;
+    color: var(--color-text);
+    transition: $transition-base;
+    caret-color: var(--color-primary);
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background-color: white;
+      box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    }
+  }
+}

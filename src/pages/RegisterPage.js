@@ -4,9 +4,8 @@ import { registerUser } from '../services/auth';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    firstName: '',
-    lastName: '',
     password: '',
     confirmPassword: ''
   });
@@ -38,8 +37,8 @@ const RegisterPage = () => {
       setError('Пожалуйста, введите корректный email');
       return;
     }
-    if (formData.firstName.trim().length < 1 || formData.lastName.trim().length < 1) {
-      setError('Имя и фамилия обязательны');
+    if (formData.name.trim().length < 1) {
+      setError('Имя обязательно');
       return;
     }
     if (formData.password.length < 6) {
@@ -55,21 +54,14 @@ const RegisterPage = () => {
 
     try {
       const userData = {
+        name: formData.name,
         email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
         password: formData.password,
       };
 
       const response = await registerUser(userData);
       console.log('Регистрация успешна:', response);
-      
-      // Сохраняем токен
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
-      }
-      
-      navigate('/profile');
+      navigate('/verify-email', { state: { email: formData.email } });
     } catch (err) {
       console.error('Ошибка регистрации:', err);
       setError(err.message || 'Ошибка регистрации');
@@ -117,29 +109,12 @@ const RegisterPage = () => {
           <div className="smooth-input-group">
             <input
               type="text"
-              name="firstName"
-              value={formData.firstName}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
             />
             <label>Имя</label>
-            <span className="smooth-input-border"></span>
-            <div className="smooth-input-icon">
-              <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="smooth-input-group">
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              required
-            />
-            <label>Фамилия</label>
             <span className="smooth-input-border"></span>
             <div className="smooth-input-icon">
               <svg viewBox="0 0 24 24">

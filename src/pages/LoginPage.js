@@ -66,7 +66,13 @@ const LoginPage = () => {
 
       setUser(profile);
       localStorage.setItem('user', JSON.stringify(profile));
-      navigate('/profile');
+      
+      // Редирект на админ-панель если роль admin
+      if (profile.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Ошибка входа. Проверьте email и пароль');
     } finally {

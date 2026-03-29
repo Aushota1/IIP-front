@@ -6,61 +6,11 @@ import CourseCard from '../components/CourseCard';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
+import { getAllCourses } from '../services/courses';
 
 import bg1 from '../assets/fon1.jpg';
 import bg3 from '../assets/fon3.jpg';
 import demoVideo from '../assets/code-demo.mp4';
-
-const courses = [
-  {
-    id: 1,
-    title: 'Algorithm Rush: Код как спорт',
-    slug: 'algorithm-rush',
-    description: 'Хардкорное программирование для будущих чемпионов ICPC и Google Hash Code',
-    duration: '6 месяцев',
-    level: 'Продвинутый',
-    price: '29 900 ₽',
-    image: bg1,
-    highlights: [
-      'Решение задач уровня LeetCode Hard',
-      'Оптимизация кода до наносекунд',
-      'Нейросети для олимпиад',
-      'Челлендж от VK и Яндекс'
-    ]
-  },
-  {
-    id: 2,
-    title: 'Blender & CAD: Дизайн будущего',
-    slug: 'blender-cad',
-    description: 'Создание 3D-моделей для геймдева, кино и метавселенных',
-    duration: '4 месяца',
-    level: 'Средний',
-    price: '24 900 ₽',
-    image: bg1,
-    highlights: [
-      'Моделирование как в Pixar',
-      'Проектирование умных устройств',
-      '3D-печать за 24 часа',
-      'NFT для метавселенных'
-    ]
-  },
-  {
-    id: 3,
-    title: 'AI Blackbox: От данных до нейросетей',
-    slug: 'ai-blackbox',
-    description: 'Полный цикл работы с искусственным интеллектом и анализом данных',
-    duration: '5 месяцев',
-    level: 'Продвинутый',
-    price: '34 900 ₽',
-    image: bg3,
-    highlights: [
-      'Generative AI (Stable Diffusion, GPT)',
-      'Анализ данных лучше Bloomberg',
-      'AutoML без тонн кода',
-      'Свой AI-стартап'
-    ]
-  },
-];
 
 const features = [
   {
@@ -307,7 +257,21 @@ const TypingCodeBlock = ({ code, language }) => {
 
 const Home = () => {
   const [activeCodeIndex, setActiveCodeIndex] = useState(0);
+  const [courses, setCourses] = useState([]);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    getAllCourses()
+      .then((data) => {
+        // Преобразуем объект в массив если нужно
+        if (Array.isArray(data)) {
+          setCourses(data);
+        } else {
+          setCourses(Object.entries(data).map(([slug, course]) => ({ ...course, slug })));
+        }
+      })
+      .catch(() => setCourses([]));
+  }, []);
   
   const particlesInit = async (main) => { 
     await loadFull(main); 
@@ -573,7 +537,7 @@ const Home = () => {
 
       <Footer />
 
-      <style jsx>{`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
@@ -631,7 +595,7 @@ const Home = () => {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 10rem 0 3rem;
+          padding: calc(var(--header-height) + 3rem) 0 3rem;
           overflow: hidden;
           background: linear-gradient(135deg, #121216 0%, #0a0a0a 100%);
         }
@@ -1117,7 +1081,7 @@ const Home = () => {
         @media (max-width: 1026px) {
           .hero-section {
             min-height: unset;
-            padding: 8rem 0 2rem;
+            padding: calc(var(--header-height) + 1rem) 0 2rem;
           }
         }
 

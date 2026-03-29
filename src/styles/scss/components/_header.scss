@@ -52,7 +52,8 @@
 
 .header-inner {
   @include flex-between;
-  height: 100%;
+  height: var(--header-height-scrolled);
+  margin: 0 auto;
 }
 
 // -----------------------------------------------------------------------------
@@ -70,11 +71,12 @@
 
   &:hover {
     transform: translateY(-0.125rem);
+  }
 
-    .logo-highlight::after {
-      height: 0.75rem;
-      background-color: rgba(67, 97, 238, 0.3);
-    }
+  &-image {
+    height: 2.5rem; // 40px
+    width: auto;
+    display: block;
   }
 
   &-text    { color: var(--color-primary); }
@@ -101,8 +103,9 @@
 // Navigation
 // -----------------------------------------------------------------------------
 .nav {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
 
   &-list {
     display: flex;
@@ -179,9 +182,11 @@
 // Header actions (CTA buttons)
 // -----------------------------------------------------------------------------
 .header-actions {
-  @include flex-center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   gap: $space-4;
-  align-self: center;
+  height: 100% !important;
 
   @include respond(lg) {
     display: none;

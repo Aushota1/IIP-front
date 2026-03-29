@@ -19,21 +19,21 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    // Если есть токен и нет user в state, получаем профиль с сервера
-    if (token && !user) {
+    if (token) {
       fetchUserProfile(token)
         .then(data => {
+          console.log('[UserContext] profile from server:', data);
+          console.log('[UserContext] role:', data?.role);
           setUser(data);
           localStorage.setItem('user', JSON.stringify(data));
         })
         .catch(() => {
-          // Токен невалидный или пользователь удалён — чистим всё
           setUser(null);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         });
     }
-  }, [user]); // если token изменится или user появится — перезапустит эффект
+  }, []); // только при монтировании — всегда свежие данные с сервера
 
   const logout = () => {
     localStorage.removeItem('token');

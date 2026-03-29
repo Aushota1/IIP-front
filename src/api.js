@@ -2,9 +2,6 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Добавляем интерцептор для автоматического добавления Authorization заголовка
@@ -14,6 +11,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
+    // Устанавливаем Content-Type только если это не FormData
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -31,7 +34,11 @@ api.interceptors.response.use(
 
 // === Auth ===
 export const registerUser = async (userData) => {
-  const response = await api.post('/auth/register', userData);
+  const response = await api.post('/auth/register', {
+    name: userData.name,
+    email: userData.email,
+    password: userData.password,
+  });
   return response.data;
 };
 
@@ -68,6 +75,74 @@ export const getCourseByIdOrSlug = async (idOrSlug) => {
 
 export const createCourse = async (courseData) => {
   const response = await api.post('/courses', courseData);
+  return response.data;
+};
+
+export const uploadCourseImage = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/courses/upload-image', formData);
+  return response.data; // ожидается { url: "https://..." }
+};
+
+// === Instructors ===
+export const createInstructor = async (instructorData) => {
+  const response = await api.post('/instructors', instructorData);
+  return response.data;
+};
+
+export const getInstructorsByCourse = async (courseId) => {
+  const response = await api.get('/instructors', { params: { course_id: courseId } });
+  return response.data;
+};
+
+export const updateInstructor = async (instructorId, instructorData) => {
+  const response = await api.put(`/instructors/${instructorId}`, instructorData);
+  return response.data;
+};
+
+export const deleteInstructor = async (instructorId) => {
+  const response = await api.delete(`/instructors/${instructorId}`);
+  return response.data;
+};
+
+export const uploadInstructorPhoto = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/instructors/upload-photo', formData);
+  return response.data;
+};
+
+// === Lessons ===
+export const createLesson = async (courseId, lessonData) => {
+  const response = await api.post(`/courses/${courseId}/lessons`, lessonData);
+  return response.data;
+};
+
+export const getLessonsByCourse = async (courseId) => {
+  const response = await api.get(`/courses/${courseId}/lessons`);
+  return response.data;
+};
+
+export const updateLesson = async (courseId, lessonId, lessonData) => {
+  const response = await api.put(`/courses/${courseId}/lessons/${lessonId}`, lessonData);
+  return response.data;
+};
+
+export const deleteLesson = async (courseId, lessonId) => {
+  const response = await api.delete(`/courses/${courseId}/lessons/${lessonId}`);
+  return response.data;
+};
+
+export const reorderLessons = async (courseId, lessonsOrder) => {
+  const response = await api.put(`/courses/${courseId}/lessons/reorder`, { lessons: lessonsOrder });
+  return response.data;
+};
+
+export const uploadLessonMaterial = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/lessons/upload-material', formData);
   return response.data;
 };
 

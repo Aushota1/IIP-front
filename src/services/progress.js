@@ -15,7 +15,7 @@ import {
   getActivityLogs as getActivityLogsApi,
 } from '../api';
 
-const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' || true;
+const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true';
 
 export const getCourseProgress = () =>
   USE_MOCK ? getCourseProgressMock() : getCourseProgressApi();

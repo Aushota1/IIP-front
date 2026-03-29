@@ -1,7 +1,7 @@
 import { getAllCoursesMock, getCourseBySlugMock } from '../mock/courses';
 import { getAllCourses as getAllCoursesApi, getCourseByIdOrSlug as getCourseBySlugApi } from '../api';
 
-const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' || true; // TODO: убрать "|| true" когда бэкенд готов
+const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true';
 
 export const getAllCourses = () =>
   USE_MOCK ? getAllCoursesMock() : getAllCoursesApi();

@@ -88,8 +88,15 @@
     font-weight: 700;
     margin-bottom: $space-5;
     color: var(--color-white);
+    display: inline-block;
 
     span:first-child { color: var(--color-primary-light); }
+  }
+
+  &-logo-image {
+    height: 2.5rem; // 40px
+    width: auto;
+    display: block;
   }
 
   &-description {

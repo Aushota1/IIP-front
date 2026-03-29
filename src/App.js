@@ -9,8 +9,10 @@ import UserProfile from './pages/UserProfile';
 import AllCourses from './pages/AllCourses';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 
-import TasksList from './pages/TasksList';       // имя компонента во множественном числе
-import TaskDetail from './pages/TaskDetail';     // компонент для детальной страницы задачи
+import TasksList from './pages/TasksList';
+import TaskDetail from './pages/TaskDetail';
+import AdminPanel from './pages/AdminPanel';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import { UserProvider } from './context/UserContext';
 
@@ -35,6 +37,16 @@ function App() {
           {/* Страницы задач */}
           <Route path="/tasks" element={<TasksList />} />
           <Route path="/tasks/:taskId" element={<TaskDetail />} />
+
+          {/* Админ-панель */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </UserProvider>
     </Router>

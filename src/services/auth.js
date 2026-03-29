@@ -1,7 +1,7 @@
 import { registerUserMock, loginUserMock, fetchUserProfileMock } from '../mock/auth';
 import { registerUser as registerUserApi, loginUser as loginUserApi, fetchUserProfile as fetchUserProfileApi } from '../api';
 
-const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' || true;
+const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true';
 
 export const registerUser = (userData) =>
   USE_MOCK ? registerUserMock(userData) : registerUserApi(userData);
