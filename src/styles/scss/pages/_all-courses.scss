@@ -7,14 +7,16 @@
 
 .all-courses-page {
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
+  font-family: 'Manrope', 'Inter', sans-serif;
   
   .all-courses-content {
     max-width: $bp-xl;
     margin: 0 auto;
     padding: $space-5 $space-5 $space-16;
     font-family: $font-main;
-    color: var(--color-text);
+    color: #e0e0e0;
   }
 }
 
@@ -26,7 +28,7 @@
   color: var(--color-white);
   padding: $space-12 $space-8;
   border-radius: $radius-lg;
-  margin: $space-8 0;
+  margin: calc(var(--header-height-scrolled) + $space-4) 0 $space-8 0;
   box-shadow: 0 0.625rem 1.875rem rgba(67, 97, 238, 0.3);
   text-align: center;
 
@@ -113,14 +115,21 @@
     width: 100%;
     padding: $space-4 $space-6 $space-4 $space-12 * 0.83;
     border-radius: $radius-full;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 30, 35, 0.8);
+    color: #e0e0e0;
     font-size: $text-base;
-    box-shadow: 0 0.3125rem 0.9375rem rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.3125rem 0.9375rem rgba(0, 0, 0, 0.3);
     transition: $transition-base;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
 
     &:focus {
       outline: none;
-      box-shadow: 0 0.5rem 1.5625rem rgba(0, 0, 0, 0.15);
+      border-color: rgba(123, 97, 255, 0.5);
+      box-shadow: 0 0.5rem 1.5625rem rgba(123, 97, 255, 0.3);
       transform: translateY(-0.125rem);
     }
 
@@ -135,7 +144,7 @@
   left: $space-5;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-primary);
+  color: #7b61ff;
   font-size: $text-xl;
 }
 
@@ -235,7 +244,10 @@
 
 // Course card (list variant)
 .course-card {
-  @include card($radius-lg, 0 0.5rem 1.5625rem rgba(0, 0, 0, 0.08));
+  background: rgba(30, 30, 35, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
+  box-shadow: 0 0.5rem 1.5625rem rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: $transition-base;
   position: relative;
@@ -243,7 +255,8 @@
 
   &:hover {
     transform: translateY(-0.5rem);
-    box-shadow: 0 0.9375rem 2.1875rem rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0.9375rem 2.1875rem rgba(123, 97, 255, 0.3);
+    border-color: rgba(123, 97, 255, 0.3);
 
     .course-image img { transform: scale(1.08); }
   }
@@ -305,13 +318,13 @@
   h2 {
     @include fluid-type($text-lg, $text-2xl * 0.93);
     margin-bottom: $space-3;
-    color: var(--color-text);
+    color: #e0e0e0;
     line-height: 1.3;
   }
 }
 
 .excerpt {
-  color: var(--color-text-muted);
+  color: #a0a0bb;
   font-size: $text-sm * 1.056;
   line-height: 1.6;
   margin-bottom: $space-5;
@@ -353,8 +366,8 @@ $levels: (
     border-radius: $radius-full * 0.2;
     font-size: $text-xs;
     font-weight: 600;
-    background: var(--color-bg-light);
-    color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.1);
+    color: #a0a0bb;
   }
 }
 
@@ -364,7 +377,7 @@ $levels: (
 
 .progress-bar {
   height: 0.5rem;
-  background: #f0f0f0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: $radius-sm * 0.5;
   margin-bottom: $space-1;
   overflow: hidden;
@@ -379,7 +392,7 @@ $levels: (
 
 .progress-text {
   font-size: $text-xs;
-  color: var(--color-text-muted);
+  color: #a0a0bb;
   display: block;
   text-align: center;
 }
@@ -397,7 +410,7 @@ $levels: (
 }
 
 .reviews {
-  color: var(--color-text-muted);
+  color: #a0a0bb;
   font-size: $text-xs;
   margin-left: $space-1;
 }
@@ -406,13 +419,15 @@ $levels: (
 // No results
 // -----------------------------------------------------------------------------
 .no-results {
-  @include card;
+  background: rgba(30, 30, 35, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
   padding: $space-12;
   text-align: center;
   margin: $space-8 0;
 
-  h2 { @include fluid-type($text-xl, $text-3xl); margin-bottom: $space-4; }
-  p  { color: var(--color-text-muted); margin-bottom: $space-6; font-size: $text-lg; }
+  h2 { @include fluid-type($text-xl, $text-3xl); margin-bottom: $space-4; color: #e0e0e0; }
+  p  { color: #a0a0bb; margin-bottom: $space-6; font-size: $text-lg; }
 }
 
 // -----------------------------------------------------------------------------

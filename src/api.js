@@ -44,14 +44,17 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
-  console.log('Login response:', response.data); // можно убрать после проверки
+  console.log('Login response:', response.data);
 
-  const token = response.data.access_token;  // <--- здесь заменено
+  // Проверяем разные возможные форматы токена
+  const token = response.data.access_token || response.data.token || response.data.accessToken;
 
   if (!token) {
+    console.error('Token not found in response. Response data:', response.data);
     throw new Error('Token not found in login response');
   }
 
+  console.log('Token extracted:', token);
   localStorage.setItem('token', token);
   return response.data;
 };
@@ -225,8 +228,10 @@ export const getCompletedTasksCount = async () => {
 
 
 export const enrollOnCourse = async (courseId) => {
+  console.log('enrollOnCourse called with courseId:', courseId);
   // Отправляем POST запрос на gateway /progress/enroll
   const response = await api.post('/progress/enroll', { course_id: courseId });
+  console.log('Enroll response:', response.data);
   return response.data;
 };
 

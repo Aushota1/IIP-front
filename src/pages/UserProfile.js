@@ -9,7 +9,7 @@ import {
   getActivityStreak,
   getCompletedTasksCount,
 } from '../services/progress';
-import { courses } from './courses'; // локальные курсы с программой
+import { getAllCourses } from '../services/courses'; // Загружаем курсы с API
 import LoadingSpinner from '../components/LoadingSpinner';
 import Sidebar from '../components/Sidebar';
 
@@ -18,6 +18,7 @@ const UserProfile = () => {
 
   const [userData, setUserData] = useState(null);
   const [userCourses, setUserCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState({}); // Все курсы с API
   const [activity, setActivity] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
@@ -58,13 +59,32 @@ const UserProfile = () => {
         profile.lastVisit = profile.last_visit;
         profile.joinDate = profile.join_date;
 
+        // Загружаем все курсы с API
+        const coursesData = await getAllCourses();
+        console.log('All courses from API:', coursesData);
+        
+        // Преобразуем в объект если это массив
+        const coursesMap = Array.isArray(coursesData) 
+          ? coursesData.reduce((acc, course) => {
+              acc[course.slug] = course;
+              return acc;
+            }, {})
+          : coursesData;
+        
+        setAllCourses(coursesMap);
+
         const progressList = await getCourseProgress();
+        console.log('Progress list:', progressList);
+        
         const activityData = await getActivityLogs();
         const streakData = await getActivityStreak();
         const completedCount = await getCompletedTasksCount();
 
         const enrolledCourses = progressList.map(p => {
-          const courseSlug = Object.keys(courses).find(slug => courses[slug].id === p.course_id);
+          // Ищем курс по course_id в загруженных курсах
+          const courseSlug = Object.keys(coursesMap).find(slug => coursesMap[slug].id === p.course_id);
+          console.log(`Looking for course with id ${p.course_id}, found slug: ${courseSlug}`);
+          
           const completedLessons = Array.isArray(p.completed_lessons)
             ? p.completed_lessons.map(id => Number(id))
             : p.completed_lessons ? [Number(p.completed_lessons)] : [];
@@ -78,6 +98,8 @@ const UserProfile = () => {
           };
         });
 
+        console.log('Enrolled courses:', enrolledCourses);
+
         setUserData(profile);
         setUserCourses(enrolledCourses);
         setActivity(activityData);
@@ -88,6 +110,7 @@ const UserProfile = () => {
           setSelectedCourseSlug(enrolledCourses[0].slug);
         }
       } catch (err) {
+        console.error('Error loading profile data:', err);
         setError('Не удалось загрузить профиль');
       } finally {
         setLoading(false);
@@ -105,8 +128,14 @@ const UserProfile = () => {
   const toggleLessonCompletion = async (courseSlug, lessonId) => {
     const courseProgress = getUserCourseProgress(courseSlug);
     const completedLessons = Array.isArray(courseProgress.completedLessons) ? courseProgress.completedLessons : [];
-    const course = courses[courseSlug];
-    if (!course.program.find(l => l.content_id === lessonId)) {
+    const course = allCourses[courseSlug];
+    
+    if (!course) {
+      setError("Курс не найден.");
+      return;
+    }
+    
+    if (!course.program || !course.program.find(l => l.content_id === lessonId)) {
       setError("Этот урок не принадлежит выбранному курсу.");
       return;
     }
@@ -153,7 +182,7 @@ const UserProfile = () => {
   if (error) return <div className="error-message">{error}</div>;
   if (!userData) return <div>Пользователь не найден</div>;
 
-  const selectedCourse = selectedCourseSlug ? courses[selectedCourseSlug] : null;
+  const selectedCourse = selectedCourseSlug ? allCourses[selectedCourseSlug] : null;
 
   return (
     <div className="profile-page-wrapper">
@@ -223,9 +252,12 @@ const UserProfile = () => {
         <section className="courses-section">
           <h3>Мои курсы</h3>
           <div className="courses-grid">
-            {userCourses.map(({ slug, progress }) => {
-              const course = courses[slug];
-              if (!course) return null;
+            {userCourses.map(({ slug, progress, course_id }) => {
+              const course = allCourses[slug];
+              if (!course) {
+                console.warn(`Course not found for slug: ${slug}, course_id: ${course_id}`);
+                return null;
+              }
 
               return (
                 <div
@@ -271,33 +303,39 @@ const UserProfile = () => {
               </div>
             </div>
 
-            <div className="course-program">
-              <h4>Программа курса:</h4>
-              <ul>
-                {selectedCourse.program.map((lesson) => {
-                  const courseProgress = getUserCourseProgress(selectedCourseSlug);
-                  const completedLessons = Array.isArray(courseProgress.completedLessons) ? courseProgress.completedLessons : [];
+            {selectedCourse.program && selectedCourse.program.length > 0 ? (
+              <div className="course-program">
+                <h4>Программа курса:</h4>
+                <ul>
+                  {selectedCourse.program.map((lesson) => {
+                    const courseProgress = getUserCourseProgress(selectedCourseSlug);
+                    const completedLessons = Array.isArray(courseProgress.completedLessons) ? courseProgress.completedLessons : [];
 
-                  const isCompleted = completedLessons.includes(lesson.content_id);
+                    const isCompleted = completedLessons.includes(lesson.content_id);
 
-                  return (
-                    <li key={lesson.content_id} className={isCompleted ? 'completed' : ''}>
-                      <div className="lesson-info">
-                        <span className="lesson-title">{lesson.title}</span>
-                        <span className="lesson-duration">{lesson.duration}</span>
-                      </div>
-                      <p className="lesson-description">{lesson.description}</p>
-                      <button
-                        className={`completion-toggle ${isCompleted ? 'completed' : ''}`}
-                        onClick={() => toggleLessonCompletion(selectedCourseSlug, lesson.content_id)}
-                      >
-                        {isCompleted ? '✓ Завершено' : '○ Завершить'}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                    return (
+                      <li key={lesson.content_id} className={isCompleted ? 'completed' : ''}>
+                        <div className="lesson-info">
+                          <span className="lesson-title">{lesson.title}</span>
+                          <span className="lesson-duration">{lesson.duration}</span>
+                        </div>
+                        <p className="lesson-description">{lesson.description}</p>
+                        <button
+                          className={`completion-toggle ${isCompleted ? 'completed' : ''}`}
+                          onClick={() => toggleLessonCompletion(selectedCourseSlug, lesson.content_id)}
+                        >
+                          {isCompleted ? '✓ Завершено' : '○ Завершить'}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <div className="no-program">
+                <p>Программа курса пока не добавлена. Обратитесь к администратору для добавления уроков.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

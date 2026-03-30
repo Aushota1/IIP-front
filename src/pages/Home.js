@@ -324,7 +324,7 @@ const Home = () => {
               Онлайн-курсы от практикующих экспертов. Освойте востребованную профессию или повысьте квалификацию.
             </p>
             <div className="buttons">
-              <Link to="#courses" className="btn btn-primary">
+              <Link to="/courses" className="btn btn-primary">
                 Выбрать курс
                 <span className="btn-icon">→</span>
               </Link>

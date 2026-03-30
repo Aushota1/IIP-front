@@ -16,7 +16,7 @@ import {
   removeFavorite,
   getSolvedTasks,
 } from "../api";
-import Header from '../components/Header';
+import SimpleHeader from '../components/SimpleHeader';
 import styles from "./TaskList.module.css";
 
 function TaskCard({ task, onToggleFavorite }) {
@@ -161,7 +161,7 @@ export default function TaskList() {
 
   return (
     <div className={styles.pageWrapper}>
-      <Header />
+      <SimpleHeader />
       <nav className={styles.sidebar}>
         <h2>Library</h2>
         <ul>

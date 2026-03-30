@@ -12,6 +12,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import TasksList from './pages/TasksList';
 import TaskDetail from './pages/TaskDetail';
 import AdminPanel from './pages/AdminPanel';
+import LessonPage from './pages/LessonPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import { UserProvider } from './context/UserContext';
@@ -37,6 +38,9 @@ function App() {
           {/* Страницы задач */}
           <Route path="/tasks" element={<TasksList />} />
           <Route path="/tasks/:taskId" element={<TaskDetail />} />
+
+          {/* Страница урока */}
+          <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
 
           {/* Админ-панель */}
           <Route

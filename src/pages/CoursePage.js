@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { Particles } from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
 import { getCourseBySlug } from '../services/courses';
-import Header from '../components/Header';
+import SimpleHeader from '../components/SimpleHeader';
 
 // Импорт функции записи на курс
 import { enrollOnCourse } from '../api'; // проверь путь
@@ -22,7 +22,11 @@ const CoursePage = () => {
   useEffect(() => {
     setCourseLoading(true);
     getCourseBySlug(courseSlug)
-      .then(setCourse)
+      .then((data) => {
+        console.log('Course loaded:', data);
+        console.log('Course ID:', data?.id);
+        setCourse(data);
+      })
       .catch((err) => {
         console.error('Ошибка загрузки курса:', err);
         setCourse(null);
@@ -58,11 +62,19 @@ const CoursePage = () => {
 
   // Обработчик нажатия на кнопку "Записаться"
   const handleEnroll = async () => {
+    console.log('Enrolling on course:', course);
+    console.log('Course ID:', course?.id);
+    
+    if (!course?.id) {
+      setErrorMsg('Ошибка: ID курса не найден');
+      return;
+    }
+    
     setIsEnrolling(true);
     setEnrollSuccess(null);
     setErrorMsg('');
     try {
-      await enrollOnCourse(course.id); // если API принимает id курса
+      await enrollOnCourse(course.id);
       setEnrollSuccess(true);
     } catch (error) {
       setEnrollSuccess(false);
@@ -79,7 +91,7 @@ const CoursePage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <Header />
+      <SimpleHeader />
       {/* Интерактивный фон с частицами */}
       <div className="particles-container">
         <Particles

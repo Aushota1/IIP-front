@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllCourses } from '../services/courses';
-import Header from '../components/Header';
+import SimpleHeader from '../components/SimpleHeader';
 
 const AllCourses = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,7 +41,7 @@ const AllCourses = () => {
 
   return (
     <div className="all-courses-page">
-      <Header />
+      <SimpleHeader />
       <div className="all-courses-content">
         <header className="courses-header">
         <div className="header-content">

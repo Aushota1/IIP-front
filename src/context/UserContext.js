@@ -20,14 +20,15 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      fetchUserProfile(token)
+      fetchUserProfile()
         .then(data => {
           console.log('[UserContext] profile from server:', data);
           console.log('[UserContext] role:', data?.role);
           setUser(data);
           localStorage.setItem('user', JSON.stringify(data));
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('[UserContext] Failed to fetch profile:', err);
           setUser(null);
           localStorage.removeItem('token');
           localStorage.removeItem('user');

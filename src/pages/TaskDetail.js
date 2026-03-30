@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getTaskById, runTaskCode, getTaskLeaderboard, isTaskSolved } from "../api";
-import Header from '../components/Header';
+import SimpleHeader from '../components/SimpleHeader';
 
 import {
   ResponsiveContainer,
@@ -415,7 +415,7 @@ export default function TaskDetail() {
 
   return (
     <div style={styles.container}>
-      <Header />
+      <SimpleHeader />
       <Tabs tabs={tabs} current={activeTab} onChange={setActiveTab} />
 
       <div style={styles.contentArea}>

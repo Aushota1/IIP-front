@@ -1,0 +1,353 @@
+.lesson-page {
+  min-height: 100vh;
+  background: #ffffff;
+
+  // Делаем SimpleHeader прозрачным на странице урока
+  .simple-header {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;
+  }
+}
+
+.lesson-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 70px);
+  padding-top: 70px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Боковая панель с содержанием
+.lesson-sidebar {
+  background: #ffffff;
+  border-right: 2px solid #e5e7eb;
+  padding: 0;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  position: sticky;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+
+  .course-info {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+
+    h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+      }
+    }
+  }
+
+  .lesson-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1.5rem;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 3px;
+
+      &:hover {
+        background: #9ca3af;
+      }
+    }
+
+    h4 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .modules-list {
+      .module-item {
+        margin-bottom: 1rem;
+
+        .module-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          border-radius: 8px;
+          transition: background 0.2s ease;
+          user-select: none;
+
+          &:hover {
+            background: #f3f4f6;
+          }
+
+          .module-arrow {
+            font-size: 0.7rem;
+            color: #6b7280;
+            transition: transform 0.2s ease;
+
+            &.expanded {
+              transform: rotate(90deg);
+            }
+          }
+
+          .module-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #374151;
+          }
+        }
+
+        .lessons-list {
+          list-style: none;
+          padding: 0;
+          margin: 0.5rem 0 0 0;
+
+          .lesson-item {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            margin-bottom: 0.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1f2937;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+
+            .check-icon {
+              color: #10b981;
+              font-size: 0.85rem;
+              font-weight: bold;
+            }
+
+            &:hover {
+              background: #f3f4f6;
+            }
+
+            &.active {
+              background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+              color: #667eea;
+              font-weight: 500;
+              border-left: 3px solid #667eea;
+              padding-left: calc(2.5rem - 3px);
+            }
+
+            &.completed:not(.active) {
+              color: #6b7280;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Основной контент
+.lesson-content {
+  padding: 3rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+  background: #ffffff;
+  min-height: calc(100vh - 70px);
+
+  @media (max-width: 768px) {
+    padding: 2rem 1.5rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    line-height: 1.2;
+
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+
+  .lesson-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+
+    &.completed {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #1f2937;
+    }
+
+    .text-content {
+      p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #374151;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .formula-block {
+      background: #f9fafb;
+      padding: 2rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid #667eea;
+      text-align: center;
+      overflow-x: auto;
+
+      .katex-display {
+        margin: 0;
+      }
+
+      .katex {
+        font-size: 1.2em;
+      }
+    }
+
+    .formula-error {
+      background: #fef2f2;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid #ef4444;
+
+      code {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #991b1b;
+      }
+
+      .error-message {
+        color: #dc2626;
+        font-size: 0.9rem;
+      }
+    }
+
+    .code-block-highlight {
+      margin: 1.5rem 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .code-header {
+        background: #2d2d2d;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid #404040;
+
+        .language-label {
+          color: #9ca3af;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+        }
+      }
+
+      pre {
+        margin: 0;
+        background: #1e1e1e;
+        padding: 1.5rem;
+        overflow-x: auto;
+
+        &::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: #2d2d2d;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #4b5563;
+          border-radius: 4px;
+
+          &:hover {
+            background: #6b7280;
+          }
+        }
+
+        code {
+          font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #d4d4d4;
+        }
+      }
+    }
+
+    .mark-complete {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      &:disabled {
+        background: #10b981;
+        cursor: not-allowed;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+// Панель заметок - удалена, не используется
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #6b7280;
+}
