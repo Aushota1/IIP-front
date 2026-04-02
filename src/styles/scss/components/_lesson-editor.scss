@@ -1,0 +1,427 @@
+// Lesson Editor Styles
+@use '../abstracts' as *;
+
+.lesson-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--background-color);
+  border-radius: 8px;
+  overflow: hidden;
+
+  // Draft Restoration Dialog
+  .draft-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .draft-dialog {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+
+    h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    p {
+      margin: 0 0 1rem 0;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .draft-info {
+      background: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+
+      p {
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+        color: var(--text-color);
+
+        &:first-child {
+          margin-top: 0;
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        strong {
+          font-weight: 600;
+          margin-right: 0.5rem;
+        }
+      }
+    }
+
+    .draft-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+
+      button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.btn-secondary {
+          background: var(--secondary-background);
+          color: var(--text-color);
+
+          &:hover {
+            background: var(--hover-background);
+          }
+        }
+
+        &.btn-primary {
+          background: var(--primary-color);
+          color: white;
+
+          &:hover {
+            background: var(--primary-hover);
+          }
+        }
+      }
+    }
+  }
+
+  .lesson-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: var(--hover-background);
+        color: var(--text-color);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .lesson-editor-body {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+
+    .form-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.95rem;
+
+        .required {
+          color: var(--error-color);
+          margin-left: 0.25rem;
+        }
+      }
+
+      input[type="text"],
+      input[type="number"],
+      textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 1rem;
+        background: var(--input-background);
+        color: var(--text-color);
+        transition: border-color 0.2s ease;
+        font-family: inherit;
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+        }
+
+        &.error {
+          border-color: var(--error-color);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          background: var(--disabled-background);
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 4rem;
+      }
+
+      input[type="number"] {
+        max-width: 200px;
+      }
+
+      .error-message {
+        display: block;
+        margin-top: 0.5rem;
+        color: var(--error-color);
+        font-size: 0.875rem;
+      }
+    }
+
+    .validation-errors {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid var(--error-color);
+      border-radius: 4px;
+
+      h4 {
+        margin: 0 0 0.75rem 0;
+        color: var(--error-color);
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 1.5rem;
+
+        li {
+          color: var(--error-color);
+          margin-bottom: 0.5rem;
+          font-size: 0.9rem;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
+
+  .lesson-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: var(--card-background);
+    border-top: 1px solid var(--border-color);
+
+    @include respond(sm) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+
+      @include respond(sm) {
+        width: 100%;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      svg {
+        font-size: 1.2rem;
+      }
+    }
+
+    .btn-secondary {
+      background: var(--secondary-background);
+      color: var(--text-color);
+
+      &:hover:not(:disabled) {
+        background: var(--hover-background);
+        transform: translateY(-0.0625rem);
+      }
+    }
+
+    .btn-preview {
+      background: var(--info-color, #2196f3);
+      color: white;
+      box-shadow: 0 0.125rem 0.375rem rgba(33, 150, 243, 0.3);
+
+      &:hover:not(:disabled) {
+        background: var(--info-hover, #1976d2);
+        transform: translateY(-0.125rem);
+        box-shadow: 0 0.25rem 0.625rem rgba(33, 150, 243, 0.4);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 0.125rem 0.375rem rgba(25, 118, 210, 0.3);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03125rem;
+
+      &:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-0.125rem);
+        box-shadow: 0 0.25rem 0.625rem rgba(25, 118, 210, 0.4);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+    }
+
+    .spinner-small {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+
+  .lesson-editor-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 3rem;
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border-color);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Dark theme adjustments
+[data-theme="dark"] {
+  .lesson-editor {
+    --background-color: #1a1a1a;
+    --card-background: #2a2a2a;
+    --border-color: #404040;
+    --text-color: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --hover-background: #3a3a3a;
+    --input-background: #2a2a2a;
+    --disabled-background: #1a1a1a;
+    --error-color: #f44336;
+    --primary-color: #2196f3;
+    --primary-hover: #1976d2;
+    --secondary-background: #3a3a3a;
+  }
+}
+
+// Light theme adjustments
+[data-theme="light"] {
+  .lesson-editor {
+    --background-color: #ffffff;
+    --card-background: #f5f5f5;
+    --border-color: #e0e0e0;
+    --text-color: #212121;
+    --text-secondary: #757575;
+    --hover-background: #eeeeee;
+    --input-background: #ffffff;
+    --disabled-background: #f5f5f5;
+    --error-color: #d32f2f;
+    --primary-color: #1976d2;
+    --primary-hover: #1565c0;
+    --secondary-background: #e0e0e0;
+  }
+}

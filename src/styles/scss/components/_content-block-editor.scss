@@ -1,0 +1,567 @@
+// =============================================================================
+// CONTENT BLOCK EDITOR COMPONENTS
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Content Block Editor Overlay
+// -----------------------------------------------------------------------------
+.content-block-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $space-4;
+  animation: fadeIn 0.2s ease-out;
+
+  @include respond(sm) {
+    padding: $space-2;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Content Block Editor Modal
+// -----------------------------------------------------------------------------
+.content-block-editor {
+  background: white;
+  border-radius: $radius-lg;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+  max-width: 56rem;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+
+  @include respond(sm) {
+    max-height: 95vh;
+    border-radius: $radius-md;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Editor Header
+// -----------------------------------------------------------------------------
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-5 $space-6;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: $radius-lg $radius-lg 0 0;
+
+  @include respond(sm) {
+    padding: $space-4;
+    border-radius: $radius-md $radius-md 0 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: $text-2xl;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    &::before {
+      content: '✨';
+      font-size: 1.5em;
+    }
+
+    @include respond(sm) {
+      font-size: $text-xl;
+    }
+  }
+
+  .close-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition-fast;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    &:active {
+      transform: rotate(90deg) scale(0.95);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Editor Body
+// -----------------------------------------------------------------------------
+.editor-body {
+  padding: $space-6;
+  overflow-y: auto;
+  flex: 1;
+  background: #1a1a2e;
+
+  @include respond(sm) {
+    padding: $space-4;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #2d2d44;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+
+    &:hover {
+      background: #888;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Form Groups
+// -----------------------------------------------------------------------------
+.form-group {
+  margin-bottom: $space-5;
+  background: white;
+  padding: $space-4;
+  border-radius: $radius-md;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    margin-bottom: $space-3;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-size: $text-base;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: $text-sm;
+
+    .required {
+      color: #e74c3c;
+      margin-left: 0.25rem;
+    }
+  }
+
+  input[type='text'],
+  input[type='url'],
+  select,
+  textarea {
+    width: 100%;
+    padding: $space-3;
+    border: 0.125rem solid #e0e0e0;
+    border-radius: $radius-sm;
+    font-size: $text-base;
+    font-family: inherit;
+    transition: $transition-fast;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.1);
+      background: #fafbff;
+    }
+
+    &:hover {
+      border-color: #999;
+    }
+
+    &.error {
+      border-color: #e74c3c;
+      background: #fff5f5;
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 8rem;
+    line-height: 1.6;
+  }
+
+  .code-textarea {
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: $text-sm;
+    line-height: 1.6;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-color: #333;
+
+    &:focus {
+      background: #252526;
+      border-color: #667eea;
+    }
+
+    &::placeholder {
+      color: #666;
+    }
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
+    background: #fff5f5;
+    border-left: 0.25rem solid #e74c3c;
+    border-radius: $radius-sm;
+    color: #c0392b;
+    font-size: $text-sm;
+    font-weight: 600;
+
+    &::before {
+      content: '⚠️';
+      font-size: 1.2em;
+    }
+  }
+
+  .help-text {
+    display: block;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
+    background: #f0f7ff;
+    border-left: 0.25rem solid #3498db;
+    border-radius: $radius-sm;
+    color: #2c3e50;
+    font-size: $text-sm;
+    line-height: 1.5;
+
+    &::before {
+      content: '💡 ';
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Block Type Selector
+// -----------------------------------------------------------------------------
+.block-type-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: $space-3;
+
+  @include respond(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .type-button {
+    position: relative;
+    padding: $space-4;
+    background: white;
+    border: 0.125rem solid #e0e0e0;
+    border-radius: $radius-md;
+    font-size: $text-sm;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: $transition-fast;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    text-align: center;
+
+    &::before {
+      font-size: 2rem;
+      transition: transform $transition-fast;
+    }
+
+    &:hover {
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-0.125rem);
+      box-shadow: 0 0.25rem 0.75rem rgba(102, 126, 234, 0.2);
+
+      &::before {
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+      color: white;
+      box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.3);
+
+      &::after {
+        content: '✓';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: white;
+        color: #667eea;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: $text-xs;
+      }
+    }
+
+    // Type-specific icons
+    &[data-type='formula']::before {
+      content: '∑';
+    }
+
+    &[data-type='code']::before {
+      content: '</>';
+    }
+
+    &[data-type='image']::before {
+      content: '🖼️';
+    }
+
+    &[data-type='video']::before {
+      content: '▶️';
+    }
+
+    &[data-type='table']::before {
+      content: '⊞';
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Image Preview
+// -----------------------------------------------------------------------------
+.image-preview {
+  margin-top: $space-3;
+  padding: $space-4;
+  border: 0.125rem dashed #e0e0e0;
+  border-radius: $radius-md;
+  background: #fafafa;
+  text-align: center;
+  min-height: 12rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: #999;
+    background: #f5f5f5;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 24rem;
+    border-radius: $radius-sm;
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.15);
+    transition: transform $transition-fast;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  .loading-placeholder {
+    color: #999;
+    font-size: $text-sm;
+    font-style: italic;
+
+    &::before {
+      content: '⏳ ';
+    }
+  }
+
+  .error-placeholder {
+    color: #e74c3c;
+    font-size: $text-sm;
+    font-weight: 600;
+
+    &::before {
+      content: '❌ ';
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Editor Footer
+// -----------------------------------------------------------------------------
+.editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding: $space-5 $space-6;
+  background: white;
+  border-top: 0.0625rem solid #e0e0e0;
+  border-radius: 0 0 $radius-lg $radius-lg;
+
+  @include respond(sm) {
+    padding: $space-4;
+    border-radius: 0 0 $radius-md $radius-md;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: $space-3 $space-6;
+    border-radius: $radius-sm;
+    font-size: $text-base;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+
+    @include respond(sm) {
+      padding: $space-3 $space-4;
+      font-size: $text-sm;
+    }
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 0.25rem 0.75rem rgba(102, 126, 234, 0.3);
+
+    &::before {
+      content: '✓';
+      font-size: 1.2em;
+    }
+
+    &:hover {
+      transform: translateY(-0.125rem);
+      box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #666;
+    border: 0.125rem solid #e0e0e0;
+
+    &::before {
+      content: '✕';
+      font-size: 1.2em;
+    }
+
+    &:hover {
+      background: #f8f9fa;
+      border-color: #999;
+      color: #333;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// File Upload Section
+// -----------------------------------------------------------------------------
+.file-upload {
+  margin-top: $space-4;
+  padding: $space-4;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border: 0.125rem dashed #667eea;
+  border-radius: $radius-md;
+  text-align: center;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: #764ba2;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+
+  .upload-label {
+    display: block;
+    margin-bottom: $space-3;
+    font-weight: 600;
+    color: #667eea;
+    font-size: $text-base;
+  }
+
+  .file-input {
+    display: block;
+    width: 100%;
+    padding: $space-3;
+    border: 0.125rem solid #e0e0e0;
+    border-radius: $radius-sm;
+    background: white;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover:not(:disabled) {
+      border-color: #667eea;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .upload-status {
+    display: block;
+    margin-top: $space-2;
+    color: #667eea;
+    font-size: $text-sm;
+    font-weight: 600;
+  }
+
+  .help-text {
+    margin-top: $space-2;
+  }
+}

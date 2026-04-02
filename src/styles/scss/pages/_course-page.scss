@@ -243,8 +243,257 @@
 }
 
 // -----------------------------------------------------------------------------
-// Program list
+// Program list - dark theme matching page design
 // -----------------------------------------------------------------------------
+.program-container {
+  @include flex-column;
+  gap: $space-6;
+  margin-top: $space-6;
+  max-width: 100%;
+}
+
+.module-block {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  transition: all 0.2s ease;
+  overflow: visible;
+  max-width: 100%;
+  margin-bottom: $space-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.module-header {
+  display: flex;
+  gap: $space-4;
+  align-items: flex-start;
+  padding: $space-5 $space-5;
+  background: rgba(30, 41, 59, 0.5);
+  border: none;
+  outline: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  min-height: 4.5rem;
+
+  &:hover {
+    background: rgba(30, 41, 59, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: $radius-md 0 0 $radius-md;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::before {
+    width: 4px;
+  }
+}
+
+.module-number {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: $radius-md;
+  @include flex-center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: $text-sm;
+  color: #fff;
+  box-shadow: 0 0.25rem 0.5rem rgba(139, 92, 246, 0.4);
+}
+
+.module-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  align-items: flex-start;
+
+  h3 {
+    margin: 0;
+    font-size: $text-lg;
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    text-align: left;
+  }
+}
+
+.module-arrow {
+  font-size: 0.7rem;
+  color: #a78bfa;
+  transition: transform 0.2s ease;
+  display: inline-block;
+
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.module-description {
+  margin: 0;
+  padding: 0;
+  font-size: $text-sm;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  text-align: left;
+}
+
+.lessons-list {
+  @include flex-column;
+  gap: 0;
+  padding: 0 0 0 $space-5;
+  list-style: none;
+  margin: $space-4 0 0 $space-8;
+  background: transparent;
+  border: none;
+  outline: none;
+  animation: slideDown 0.3s ease-out;
+  border-left: 2px solid rgba(139, 92, 246, 0.3);
+  position: relative;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+.lesson-item {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+  padding: $space-3 $space-4;
+  background: rgba(15, 23, 42, 0.3);
+  border: none;
+  outline: none;
+  border-radius: $radius-md;
+  margin-bottom: $space-2;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.15);
+    transform: translateX(0.25rem);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: $radius-md 0 0 $radius-md;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::before {
+    width: 4px;
+  }
+}
+
+.lesson-number {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: $radius-sm;
+  @include flex-center;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: $text-xs;
+  color: #a78bfa;
+  transition: all 0.2s ease;
+
+  .lesson-item:hover & {
+    background: rgba(139, 92, 246, 0.3);
+    color: #c4b5fd;
+  }
+}
+
+.course-page .lesson-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+
+  h4 {
+    margin: 0 0 $space-1 0;
+    font-size: $text-base;
+    color: #fff;
+    font-weight: 500;
+    word-wrap: break-word;
+  }
+}
+
+.course-page .lesson-description {
+  margin: 0;
+  font-size: $text-sm;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.lesson-duration {
+  flex-shrink: 0;
+  padding: $space-1 $space-3;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  color: #a78bfa;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  .lesson-item:hover & {
+    background: rgba(139, 92, 246, 0.25);
+    color: #c4b5fd;
+  }
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: $space-10 $space-5;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: $text-base;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: $radius-lg;
+  border: 0.125rem dashed rgba(139, 92, 246, 0.3);
+  
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
 .program-list {
   @include flex-column;
   gap: $space-5;
@@ -258,16 +507,6 @@
     align-items: flex-start;
     border-left: 0.25rem solid #8b5cf6;
   }
-}
-
-.module-number {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: #8b5cf6;
-  border-radius: $radius-full;
-  @include flex-center;
-  font-weight: bold;
-  flex-shrink: 0;
 }
 
 .module-duration {

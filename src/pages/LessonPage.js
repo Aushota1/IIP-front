@@ -3,124 +3,49 @@ import { useParams, useNavigate } from 'react-router-dom';
 import SimpleHeader from '../components/SimpleHeader';
 import FormulaBlock from '../components/FormulaBlock';
 import CodeBlockHighlight from '../components/CodeBlockHighlight';
+import { getCourseContent } from '../api';
+import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/scss/pages/_lesson-page.scss';
 
 const LessonPage = () => {
-  const { courseId, lessonId } = useParams();
+  const { courseId } = useParams();
   const navigate = useNavigate();
-  const [lesson, setLesson] = useState(null);
-  const [course, setCourse] = useState(null);
+  const [courseContent, setCourseContent] = useState(null);
+  const [currentLessonId, setCurrentLessonId] = useState(null);
   const [progress, setProgress] = useState(0);
   const [completedSections, setCompletedSections] = useState(new Set());
-  const [expandedModules, setExpandedModules] = useState(new Set([1])); // Первый модуль открыт по умолчанию
+  const [expandedModules, setExpandedModules] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Загрузка данных урока
-    fetchLessonData();
-  }, [courseId, lessonId]);
+    fetchCourseContent();
+  }, [courseId]);
 
-  const fetchLessonData = async () => {
-    // TODO: Заменить на реальный API
-    const mockLesson = {
-      id: lessonId,
-      title: 'Введение в линейные модели',
-      sections: [
-        {
-          id: 1,
-          type: 'text',
-          title: 'Математическое описание',
-          content: 'Линейные модели являются одним из основных инструментов машинного обучения. Они используются для задач регрессии и классификации.'
-        },
-        {
-          id: 2,
-          type: 'formula',
-          title: 'Линейная функция',
-          content: 'y = w_1x_1 + w_2x_2 + \\ldots + w_nx_n + b'
-        },
-        {
-          id: 3,
-          type: 'text',
-          title: 'Градиентный спуск',
-          content: 'Для обучения линейных моделей используется метод градиентного спуска, который итеративно минимизирует функцию потерь.'
-        },
-        {
-          id: 4,
-          type: 'formula',
-          content: '\\nabla_w L = \\frac{2}{N} X^T(Xw - y)'
-        },
-        {
-          id: 5,
-          type: 'code',
-          language: 'python',
-          title: 'Пример реализации',
-          content: `import numpy as np
+  useEffect(() => {
+    // Автоматически выбираем первый урок при загрузке
+    if (courseContent && !currentLessonId) {
+      const firstModule = courseContent.modules[0];
+      if (firstModule && firstModule.lessons.length > 0) {
+        setCurrentLessonId(firstModule.lessons[0].id);
+        setExpandedModules(new Set([firstModule.id]));
+      }
+    }
+  }, [courseContent, currentLessonId]);
 
-def linear_model(X, w, b):
-    """
-    Линейная модель
-    X: матрица признаков (N x D)
-    w: веса (D,)
-    b: смещение (скаляр)
-    """
-    return np.dot(X, w) + b
-
-def gradient_descent(X, y, learning_rate=0.01, epochs=100):
-    n_samples, n_features = X.shape
-    w = np.zeros(n_features)
-    b = 0
+  const fetchCourseContent = async () => {
+    setLoading(true);
+    setError(null);
     
-    for epoch in range(epochs):
-        # Предсказание
-        y_pred = linear_model(X, w, b)
-        
-        # Градиенты
-        dw = (2/n_samples) * np.dot(X.T, (y_pred - y))
-        db = (2/n_samples) * np.sum(y_pred - y)
-        
-        # Обновление весов
-        w -= learning_rate * dw
-        b -= learning_rate * db
-    
-    return w, b`
-        }
-      ]
-    };
-
-    const mockCourse = {
-      id: courseId,
-      title: 'Машинное обучение',
-      modules: [
-        {
-          id: 1,
-          title: 'Модуль 1: Основы',
-          lessons: [
-            { id: '1', title: 'Введение в ML', completed: false },
-            { id: '2', title: 'Линейные модели', completed: false },
-            { id: '3', title: 'Градиентный спуск', completed: false }
-          ]
-        },
-        {
-          id: 2,
-          title: 'Модуль 2: Классификация',
-          lessons: [
-            { id: '4', title: 'Логистическая регрессия', completed: false },
-            { id: '5', title: 'SVM', completed: false },
-            { id: '6', title: 'Метрики качества', completed: false }
-          ]
-        },
-        {
-          id: 3,
-          title: 'Модуль 3: Регрессия',
-          lessons: [
-            { id: '7', title: 'Линейная регрессия', completed: false },
-            { id: '8', title: 'Регуляризация', completed: false }
-          ]
-        }
-      ]
-    };
-
-    setLesson(mockLesson);
-    setCourse(mockCourse);
+    try {
+      const data = await getCourseContent(courseId);
+      setCourseContent(data);
+    } catch (err) {
+      console.error('Error loading course content:', err);
+      setError('Не удалось загрузить содержимое курса');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSectionComplete = (sectionId) => {
@@ -128,8 +53,11 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
     newCompleted.add(sectionId);
     setCompletedSections(newCompleted);
     
-    const newProgress = (newCompleted.size / lesson.sections.length) * 100;
-    setProgress(newProgress);
+    const currentLesson = getCurrentLesson();
+    if (currentLesson && currentLesson.sections) {
+      const newProgress = (newCompleted.size / currentLesson.sections.length) * 100;
+      setProgress(newProgress);
+    }
   };
 
   const toggleModule = (moduleId) => {
@@ -142,8 +70,42 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
     setExpandedModules(newExpanded);
   };
 
-  if (!lesson || !course) {
-    return <div className="loading">Загрузка...</div>;
+  const selectLesson = (lessonId) => {
+    setCurrentLessonId(lessonId);
+    setCompletedSections(new Set());
+    setProgress(0);
+  };
+
+  const getCurrentLesson = () => {
+    if (!courseContent || !currentLessonId) return null;
+    
+    for (const module of courseContent.modules) {
+      const lesson = module.lessons.find(l => l.id === currentLessonId);
+      if (lesson) return lesson;
+    }
+    return null;
+  };
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <div className="error-message">{error}</div>;
+  if (!courseContent) return <div className="error-message">Курс не найден</div>;
+
+  const currentLesson = getCurrentLesson();
+
+  // Если модулей или уроков нет
+  if (!courseContent.modules || courseContent.modules.length === 0) {
+    return (
+      <div className="lesson-page">
+        <SimpleHeader />
+        <div className="lesson-container">
+          <div className="empty-state">
+            <h2>{courseContent.course_title}</h2>
+            <p>Модули и уроки для этого курса пока не добавлены.</p>
+            <p>Обратитесь к администратору для добавления учебных материалов.</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -154,7 +116,7 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
         {/* Боковая панель с содержанием */}
         <aside className="lesson-sidebar">
           <div className="course-info">
-            <h3>{course.title}</h3>
+            <h3>{courseContent.course_title}</h3>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${progress}%` }}></div>
             </div>
@@ -163,7 +125,7 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
           <nav className="lesson-nav">
             <h4>Содержание курса</h4>
             <div className="modules-list">
-              {course.modules.map((module) => (
+              {courseContent.modules.map((module) => (
                 <div key={module.id} className="module-item">
                   <div 
                     className="module-header"
@@ -177,14 +139,16 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
                   
                   {expandedModules.has(module.id) && (
                     <ul className="lessons-list">
-                      {module.lessons.map((l) => (
+                      {module.lessons.map((lesson) => (
                         <li 
-                          key={l.id}
-                          className={`lesson-item ${l.id === lessonId ? 'active' : ''} ${l.completed ? 'completed' : ''}`}
-                          onClick={() => navigate(`/courses/${courseId}/lessons/${l.id}`)}
+                          key={lesson.id}
+                          className={`lesson-item ${lesson.id === currentLessonId ? 'active' : ''}`}
+                          onClick={() => selectLesson(lesson.id)}
                         >
-                          {l.completed && <span className="check-icon">✓</span>}
-                          {l.title}
+                          {lesson.title}
+                          {lesson.duration_minutes && (
+                            <span className="lesson-duration"> ({lesson.duration_minutes} мин)</span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -197,41 +161,110 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=100):
 
         {/* Основной контент */}
         <main className="lesson-content">
-          <h1>{lesson.title}</h1>
-          
-          {lesson.sections.map((section) => (
-            <section 
-              key={section.id} 
-              className={`lesson-section ${completedSections.has(section.id) ? 'completed' : ''}`}
-            >
-              {section.title && <h2>{section.title}</h2>}
+          {currentLesson ? (
+            <>
+              <h1>{currentLesson.title}</h1>
               
-              {section.type === 'text' && (
-                <div className="text-content">
-                  <p>{section.content}</p>
+              {currentLesson.sections && currentLesson.sections.length > 0 ? (
+                currentLesson.sections.map((section) => (
+                  <section 
+                    key={section.id} 
+                    className={`lesson-section lesson-section--${section.type}`}
+                  >
+                    {section.type === 'heading' && (
+                      <>
+                        {section.level === 1 && <h1>{section.content}</h1>}
+                        {section.level === 2 && <h2>{section.content}</h2>}
+                        {section.level === 3 && <h3>{section.content}</h3>}
+                        
+                        {/* Render section_in_blok for heading */}
+                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                          <div key={idx} className="sub-section">
+                            {subSection.type === 'text' && <p>{subSection.content}</p>}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    
+                    {section.type === 'text' && (
+                      <div className="text-content">
+                        <p>{section.content}</p>
+                      </div>
+                    )}
+                    
+                    {section.type === 'formula' && (
+                      <>
+                        {section.title && <h3>{section.title}</h3>}
+                        <FormulaBlock formula={section.content} />
+                        
+                        {/* Render section_in_blok for formula */}
+                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                          <div key={idx} className="sub-section">
+                            {subSection.type === 'text' && <p>{subSection.content}</p>}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    
+                    {section.type === 'code' && (
+                      <>
+                        {section.title && <h3>{section.title}</h3>}
+                        <CodeBlockHighlight 
+                          code={section.content}
+                          language={section.language || 'python'}
+                        />
+                        
+                        {/* Render section_in_blok for code */}
+                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                          <div key={idx} className="sub-section">
+                            {subSection.type === 'text' && <p>{subSection.content}</p>}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    
+                    {section.type === 'image' && (
+                      <div className="image-content">
+                        {section.title && <h3>{section.title}</h3>}
+                        <img src={section.url} alt={section.alt || section.title || 'Изображение'} />
+                        
+                        {/* Render section_in_blok for image */}
+                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                          <div key={idx} className="sub-section">
+                            {subSection.type === 'text' && <p>{subSection.content}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {section.type === 'video' && (
+                      <div className="video-content">
+                        {section.title && <h3>{section.title}</h3>}
+                        <video controls src={section.url}>
+                          Ваш браузер не поддерживает видео.
+                        </video>
+                        
+                        {/* Render section_in_blok for video */}
+                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                          <div key={idx} className="sub-section">
+                            {subSection.type === 'text' && <p>{subSection.content}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                ))
+              ) : (
+                <div className="no-content">
+                  <p>Содержимое урока пока не добавлено.</p>
                 </div>
               )}
-              
-              {section.type === 'formula' && (
-                <FormulaBlock formula={section.content} />
-              )}
-              
-              {section.type === 'code' && (
-                <CodeBlockHighlight 
-                  code={section.content}
-                  language={section.language}
-                />
-              )}
-              
-              <button 
-                className="mark-complete"
-                onClick={() => handleSectionComplete(section.id)}
-                disabled={completedSections.has(section.id)}
-              >
-                {completedSections.has(section.id) ? '✓ Прочитано' : 'Отметить как прочитанное'}
-              </button>
-            </section>
-          ))}
+            </>
+          ) : (
+            <div className="no-lesson-selected">
+              <p>Выберите урок из списка слева</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

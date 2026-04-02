@@ -1,0 +1,238 @@
+@use '../abstracts/mixins' as *;
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  pointer-events: none;
+
+  @media (max-width: 768px) {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+  border-left: 4px solid;
+  pointer-events: auto;
+  animation: slideInNotification 0.3s ease-out;
+  min-width: 300px;
+  transition: all 0.3s ease;
+
+  @media (max-width: 768px) {
+    min-width: auto;
+  }
+
+  &:hover {
+    transform: translateX(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  // Disappear animation
+  &.notification--disappearing {
+    animation: slideOutNotification 0.3s ease-out forwards;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50%;
+    animation: iconPulse 0.5s ease-out;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+  }
+
+  &__action {
+    align-self: flex-start;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+
+    &:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &__close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+    transition: all 0.2s ease;
+    padding: 0;
+    border-radius: 4px;
+
+    &:hover {
+      color: #333;
+      background: rgba(0, 0, 0, 0.05);
+      transform: rotate(90deg);
+    }
+
+    &:active {
+      transform: rotate(90deg) scale(0.9);
+    }
+  }
+
+  // Type-specific styles
+  &--success {
+    border-left-color: #28a745;
+
+    .notification__icon {
+      color: #28a745;
+      background: rgba(40, 167, 69, 0.1);
+    }
+
+    .notification__action {
+      color: #28a745;
+      border: 1px solid #28a745;
+
+      &:hover {
+        background: rgba(40, 167, 69, 0.1);
+      }
+    }
+  }
+
+  &--error {
+    border-left-color: #dc3545;
+
+    .notification__icon {
+      color: #dc3545;
+      background: rgba(220, 53, 69, 0.1);
+    }
+
+    .notification__action {
+      color: #dc3545;
+      border: 1px solid #dc3545;
+
+      &:hover {
+        background: rgba(220, 53, 69, 0.1);
+      }
+    }
+  }
+
+  &--warning {
+    border-left-color: #ffc107;
+
+    .notification__icon {
+      color: #ffc107;
+      background: rgba(255, 193, 7, 0.1);
+    }
+
+    .notification__action {
+      color: #ffc107;
+      border: 1px solid #ffc107;
+
+      &:hover {
+        background: rgba(255, 193, 7, 0.1);
+      }
+    }
+  }
+
+  &--info {
+    border-left-color: #17a2b8;
+
+    .notification__icon {
+      color: #17a2b8;
+      background: rgba(23, 162, 184, 0.1);
+    }
+
+    .notification__action {
+      color: #17a2b8;
+      border: 1px solid #17a2b8;
+
+      &:hover {
+        background: rgba(23, 162, 184, 0.1);
+      }
+    }
+  }
+}
+
+@keyframes slideInNotification {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutNotification {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    max-height: 200px;
+    margin-bottom: 12px;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes iconPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

@@ -259,10 +259,12 @@ const UserProfile = () => {
                 return null;
               }
 
+              const isActive = selectedCourseSlug === slug;
+
               return (
                 <div
                   key={slug}
-                  className={`course-card ${selectedCourseSlug === slug ? 'active' : ''}`}
+                  className={`course-card ${isActive ? 'active' : ''}`}
                   onClick={() => setSelectedCourseSlug(slug)}
                 >
                   <div className="course-card-header">
@@ -281,63 +283,20 @@ const UserProfile = () => {
                   <div className="course-meta">
                     <span>Последняя активность: {formatDate(userCourses.find(c => c.slug === slug)?.lastActivity)}</span>
                   </div>
+                  <Link 
+                    to={`/course-content/${course.id}`}
+                    className="course-action-button"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Перейти к курсу →
+                  </Link>
                 </div>
               );
             })}
           </div>
         </section>
 
-        {selectedCourse && (
-          <div className="course-details">
-            <div className="course-details-header">
-              <h3>{selectedCourse.title}</h3>
-              <Link to={`/courses/${selectedCourseSlug}`} className="course-link">
-                Перейти к курсу →
-              </Link>
-            </div>
 
-            <div className="course-progress">
-              <div className="progress-info">
-                <span>Прогресс: {getUserCourseProgress(selectedCourseSlug).progress}%</span>
-                <span>{selectedCourse.duration}</span>
-              </div>
-            </div>
-
-            {selectedCourse.program && selectedCourse.program.length > 0 ? (
-              <div className="course-program">
-                <h4>Программа курса:</h4>
-                <ul>
-                  {selectedCourse.program.map((lesson) => {
-                    const courseProgress = getUserCourseProgress(selectedCourseSlug);
-                    const completedLessons = Array.isArray(courseProgress.completedLessons) ? courseProgress.completedLessons : [];
-
-                    const isCompleted = completedLessons.includes(lesson.content_id);
-
-                    return (
-                      <li key={lesson.content_id} className={isCompleted ? 'completed' : ''}>
-                        <div className="lesson-info">
-                          <span className="lesson-title">{lesson.title}</span>
-                          <span className="lesson-duration">{lesson.duration}</span>
-                        </div>
-                        <p className="lesson-description">{lesson.description}</p>
-                        <button
-                          className={`completion-toggle ${isCompleted ? 'completed' : ''}`}
-                          onClick={() => toggleLessonCompletion(selectedCourseSlug, lesson.content_id)}
-                        >
-                          {isCompleted ? '✓ Завершено' : '○ Завершить'}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : (
-              <div className="no-program">
-                <p>Программа курса пока не добавлена. Обратитесь к администратору для добавления уроков.</p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
       </div>
     </div>

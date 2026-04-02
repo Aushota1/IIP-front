@@ -4,6 +4,12 @@ import { Link } from 'react-router-dom';
 const CourseCard = ({ slug, title, description, duration, level, price, image }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  const levelLabels = {
+    beginner: 'Начальный',
+    intermediate: 'Средний',
+    advanced: 'Продвинутый',
+  };
+
   return (
     <div 
       className="glass-course-card"
@@ -14,7 +20,9 @@ const CourseCard = ({ slug, title, description, duration, level, price, image })
       <div className="glass-overlay"></div>
       
       <div className="card-content">
-        <div className={`level-badge ${level.toLowerCase()}`}>{level}</div>
+        <div className={`level-badge ${level.toLowerCase()}`}>
+          {levelLabels[level.toLowerCase()] || level}
+        </div>
         
         <div className="text-content">
           <h3>{title}</h3>

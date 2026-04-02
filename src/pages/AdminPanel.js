@@ -6,11 +6,10 @@ import {
   createInstructor,
   uploadInstructorPhoto,
   getInstructorsByCourse,
-  createLesson,
-  getLessonsByCourse,
 } from '../api';
-import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import CurriculumBuilder from '../components/CurriculumBuilder';
+import { CurriculumProvider } from '../context/CurriculumContext';
 import '../styles/scss/pages/_admin-panel.scss';
 
 const EMPTY_COURSE_FORM = {
@@ -32,17 +31,10 @@ const EMPTY_INSTRUCTOR_FORM = {
   social: [{ platform: 'github', url: '' }],
 };
 
-const EMPTY_LESSON_FORM = {
-  title: '',
-  description: '',
-  duration: '',
-  order: 1,
-  content_type: 'video',
-  content_url: '',
-};
+
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('courses'); // courses, instructors, lessons
+  const [activeTab, setActiveTab] = useState('courses'); // courses, instructors, curriculum
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   
@@ -56,10 +48,6 @@ const AdminPanel = () => {
   const [instructors, setInstructors] = useState([]);
   const [instructorPhotoPreview, setInstructorPhotoPreview] = useState(null);
   
-  // Lesson form
-  const [lessonForm, setLessonForm] = useState(EMPTY_LESSON_FORM);
-  const [lessons, setLessons] = useState([]);
-  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -70,7 +58,6 @@ const AdminPanel = () => {
   useEffect(() => {
     if (selectedCourse) {
       loadInstructors();
-      loadLessons();
     }
   }, [selectedCourse]);
 
@@ -97,15 +84,7 @@ const AdminPanel = () => {
     }
   };
 
-  const loadLessons = async () => {
-    if (!selectedCourse?.id) return;
-    try {
-      const data = await getLessonsByCourse(selectedCourse.id);
-      setLessons(data);
-    } catch (err) {
-      console.error('Failed to load lessons:', err);
-    }
-  };
+
 
   // ========== COURSE HANDLERS ==========
   const handleCourseChange = (e) => {
@@ -252,41 +231,7 @@ const AdminPanel = () => {
     }
   };
 
-  // ========== LESSON HANDLERS ==========
-  const handleLessonChange = (e) => {
-    setLessonForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
-  const handleSubmitLesson = async (e) => {
-    e.preventDefault();
-    if (!selectedCourse) {
-      setMessage({ type: 'error', text: 'Выберите курс для добавления урока' });
-      return;
-    }
-
-    setLoading(true);
-    setMessage(null);
-    try {
-      const lessonData = {
-        title: lessonForm.title,
-        description: lessonForm.description,
-        duration: lessonForm.duration,
-        order: parseInt(lessonForm.order),
-        content_type: lessonForm.content_type,
-        content_url: lessonForm.content_url,
-      };
-      
-      await createLesson(selectedCourse.id, lessonData);
-      
-      setMessage({ type: 'success', text: 'Урок добавлен' });
-      setLessonForm(EMPTY_LESSON_FORM);
-      await loadLessons();
-    } catch (err) {
-      setMessage({ type: 'error', text: `Ошибка: ${err}` });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="admin-panel-wrapper">
@@ -319,10 +264,10 @@ const AdminPanel = () => {
               👨‍🏫 Преподаватели
             </button>
             <button
-              className={`admin-tab ${activeTab === 'lessons' ? 'active' : ''}`}
-              onClick={() => setActiveTab('lessons')}
+              className={`admin-tab ${activeTab === 'curriculum' ? 'active' : ''}`}
+              onClick={() => setActiveTab('curriculum')}
             >
-              📖 Уроки
+              📋 Программа Курса
             </button>
           </div>
 
@@ -617,133 +562,14 @@ const AdminPanel = () => {
             </>
           )}
 
-          {/* LESSONS TAB */}
-          {activeTab === 'lessons' && (
-            <>
+          {/* CURRICULUM TAB */}
+          {activeTab === 'curriculum' && (
+            <CurriculumProvider>
               <section className="admin-section">
-                <h2>Добавить урок</h2>
-                
-                <div className="course-selector">
-                  <label>
-                    Выберите курс *
-                    <select
-                      value={selectedCourse?.id || ''}
-                      onChange={(e) => {
-                        const course = courses.find(c => c.id === parseInt(e.target.value));
-                        setSelectedCourse(course);
-                      }}
-                    >
-                      <option value="">-- Выберите курс --</option>
-                      {courses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                          {course.title}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <form className="admin-form" onSubmit={handleSubmitLesson}>
-                  <label>
-                    Название урока *
-                    <input
-                      name="title"
-                      value={lessonForm.title}
-                      onChange={handleLessonChange}
-                      required
-                      placeholder="Урок 1: Введение в алгоритмы"
-                    />
-                  </label>
-
-                  <label>
-                    Описание *
-                    <textarea
-                      name="description"
-                      value={lessonForm.description}
-                      onChange={handleLessonChange}
-                      required
-                      rows={3}
-                      placeholder="Краткое описание урока"
-                    />
-                  </label>
-
-                  <div className="form-row">
-                    <label>
-                      Длительность *
-                      <input
-                        name="duration"
-                        value={lessonForm.duration}
-                        onChange={handleLessonChange}
-                        required
-                        placeholder="30 мин"
-                      />
-                    </label>
-                    <label>
-                      Порядок *
-                      <input
-                        type="number"
-                        name="order"
-                        value={lessonForm.order}
-                        onChange={handleLessonChange}
-                        required
-                        min="1"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="form-row">
-                    <label>
-                      Тип контента *
-                      <select name="content_type" value={lessonForm.content_type} onChange={handleLessonChange}>
-                        <option value="video">Видео</option>
-                        <option value="text">Текст</option>
-                        <option value="quiz">Тест</option>
-                        <option value="practice">Практика</option>
-                      </select>
-                    </label>
-                    <label>
-                      URL контента *
-                      <input
-                        name="content_url"
-                        value={lessonForm.content_url}
-                        onChange={handleLessonChange}
-                        required
-                        placeholder="https://..."
-                      />
-                    </label>
-                  </div>
-
-                  <div className="form-actions">
-                    <button type="submit" className="btn btn-primary" disabled={loading || !selectedCourse}>
-                      {loading ? 'Сохранение...' : 'Добавить урок'}
-                    </button>
-                  </div>
-                </form>
+                <h2>Программа Курса</h2>
+                <CurriculumBuilder />
               </section>
-
-              {selectedCourse && lessons.length > 0 && (
-                <section className="admin-section">
-                  <h2>Уроки курса "{selectedCourse.title}"</h2>
-                  <div className="admin-list">
-                    {lessons.sort((a, b) => a.order - b.order).map((lesson) => (
-                      <div key={lesson.content_id} className="admin-list-item">
-                        <div className="admin-list-info">
-                          <div>
-                            <p className="admin-list-title">
-                              {lesson.order}. {lesson.title}
-                            </p>
-                            <p className="admin-list-meta">
-                              <span className="level-badge">{lesson.content_type}</span>
-                              <span>{lesson.duration}</span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
+            </CurriculumProvider>
           )}
         </div>
       </div>

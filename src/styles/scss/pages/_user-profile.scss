@@ -330,6 +330,42 @@
   color: #666;
 }
 
+.course-action-button {
+  display: block;
+  margin-top: $space-4;
+  padding: $space-3 $space-4;
+  background: linear-gradient(135deg, #6e45e2, #88d3ce);
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  border-radius: $radius-sm;
+  font-weight: 500;
+  font-size: $text-sm;
+  transition: $transition-fast;
+  box-shadow: 0 0.125rem 0.5rem rgba(110, 69, 226, 0.2);
+
+  &:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: 0 0.25rem 0.75rem rgba(110, 69, 226, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Course details
 // -----------------------------------------------------------------------------

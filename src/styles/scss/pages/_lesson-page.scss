@@ -1,3 +1,5 @@
+@use '../abstracts' as *;
+
 .lesson-page {
   min-height: 100vh;
   background: #ffffff;
@@ -176,10 +178,9 @@
 }
 
 // Основной контент
-.lesson-content {
+.lesson-page .lesson-content {
   padding: 3rem 4rem;
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
   background: #ffffff;
   min-height: calc(100vh - 70px);
 
@@ -200,28 +201,53 @@
 
   .lesson-section {
     margin-bottom: 3rem;
-    padding: 2rem;
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    padding: 0;
+    background: transparent;
+    border: none;
     transition: all 0.3s ease;
 
-    &.completed {
-      border-color: #10b981;
-      background: rgba(16, 185, 129, 0.05);
+    // Текстовые секции без рамок и отступов
+    &.lesson-section--text,
+    &.lesson-section--heading {
+      padding: 0;
+      background: transparent;
+      border: none;
+    }
+
+    // Остальные типы секций с рамками
+    &.lesson-section--code,
+    &.lesson-section--formula,
+    &.lesson-section--image,
+    &.lesson-section--video {
+      padding: 2rem;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    h1, h2, h3 {
+      color: #1f2937;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      line-height: 1.2;
     }
 
     h2 {
       font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-      color: #1f2937;
+    }
+
+    h3 {
+      font-size: 1.5rem;
     }
 
     .text-content {
       p {
         font-size: 1.1rem;
         line-height: 1.8;
-        color: #374151;
+        color: #000000;
         margin-bottom: 1rem;
       }
     }
@@ -314,30 +340,6 @@
         }
       }
     }
-
-    .mark-complete {
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
-
-      &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-      }
-
-      &:disabled {
-        background: #10b981;
-        cursor: not-allowed;
-        opacity: 0.8;
-      }
-    }
   }
 }
 
@@ -350,4 +352,83 @@
   height: 100vh;
   font-size: 1.2rem;
   color: #6b7280;
+}
+
+
+// Image content
+.image-content {
+  margin: 2rem 0;
+  text-align: center;
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-caption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-style: italic;
+  }
+}
+
+// Video content
+.video-content {
+  margin: 2rem 0;
+
+  h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #1f2937;
+  }
+
+  video {
+    width: 100%;
+    max-width: 800px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Empty states
+.empty-state,
+.no-lesson-selected {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #6b7280;
+
+  h2 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+}
+
+.no-content {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+
+// Sub-sections within main sections
+.sub-section {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 3px solid #e5e7eb;
+  
+  p {
+    color: #4b5563;
+    line-height: 1.6;
+  }
 }

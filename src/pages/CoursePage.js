@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { Particles } from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
 import { getCourseBySlug } from '../services/courses';
+import { curriculumAPI } from '../services/curriculum';
 import SimpleHeader from '../components/SimpleHeader';
 
 // Импорт функции записи на курс
@@ -12,11 +13,14 @@ import { enrollOnCourse } from '../api'; // проверь путь
 const CoursePage = () => {
   const { courseSlug } = useParams();
   const [course, setCourse] = useState(null);
+  const [courseInfo, setCourseInfo] = useState(null);
   const [courseLoading, setCourseLoading] = useState(true);
+  const [programLoading, setProgramLoading] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrollSuccess, setEnrollSuccess] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [activeTab, setActiveTab] = useState('about');
+  const [expandedModules, setExpandedModules] = useState(new Set());
   const { scrollYProgress } = useScroll();
 
   useEffect(() => {
@@ -26,6 +30,11 @@ const CoursePage = () => {
         console.log('Course loaded:', data);
         console.log('Course ID:', data?.id);
         setCourse(data);
+        
+        // Load course info (program) if course has ID
+        if (data?.id) {
+          loadCourseInfo(data.id);
+        }
       })
       .catch((err) => {
         console.error('Ошибка загрузки курса:', err);
@@ -33,6 +42,36 @@ const CoursePage = () => {
       })
       .finally(() => setCourseLoading(false));
   }, [courseSlug]);
+
+  // Load course info when switching to program tab
+  useEffect(() => {
+    if (activeTab === 'program' && course?.id && !courseInfo) {
+      loadCourseInfo(course.id);
+    }
+  }, [activeTab, course, courseInfo]);
+
+  const loadCourseInfo = async (courseId) => {
+    setProgramLoading(true);
+    try {
+      const info = await curriculumAPI.getCourseInfo(courseId);
+      console.log('Course info loaded:', info);
+      setCourseInfo(info);
+    } catch (err) {
+      console.error('Ошибка загрузки программы курса:', err);
+    } finally {
+      setProgramLoading(false);
+    }
+  };
+
+  const toggleModule = (moduleId) => {
+    const newExpanded = new Set(expandedModules);
+    if (newExpanded.has(moduleId)) {
+      newExpanded.delete(moduleId);
+    } else {
+      newExpanded.add(moduleId);
+    }
+    setExpandedModules(newExpanded);
+  };
 
   const opacity = useTransform(scrollYProgress, [0.8, 0.9], [1, 0]);
 
@@ -187,7 +226,7 @@ const CoursePage = () => {
                 {levelLabels[course.level] || course.level}
               </span>
               <span className="duration">{course.duration}</span>
-              <span className="price">{course.price}</span>
+              <span className="price">{course.price} ₽</span>
             </motion.div>
             
             <motion.button
@@ -275,23 +314,75 @@ const CoursePage = () => {
             )}
 
             {activeTab === 'program' && (
-              <ul className="program-list">
-                {course.program.map((item, i) => (
-                  <motion.li 
-                    key={i}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <div className="module-number">{i+1}</div>
-                    <div className="module-content">
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
-                      <div className="module-duration">{item.duration}</div>
-                    </div>
-                  </motion.li>
-                ))}
-              </ul>
+              <>
+                {programLoading ? (
+                  <div className="loading-state">
+                    <p>Загрузка программы курса...</p>
+                  </div>
+                ) : courseInfo && courseInfo.modules && courseInfo.modules.length > 0 ? (
+                  <div className="program-container">
+                    {courseInfo.modules.map((module, moduleIndex) => (
+                      <motion.div
+                        key={module.id}
+                        className="module-block"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * moduleIndex }}
+                      >
+                        <div 
+                          className="module-header"
+                          onClick={() => toggleModule(module.id)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="module-number">{module.order_index}</div>
+                          <div className="module-info">
+                            <h3>
+                              <span className={`module-arrow ${expandedModules.has(module.id) ? 'expanded' : ''}`}>
+                                ▶
+                              </span>
+                              {module.title}
+                            </h3>
+                            {module.description && (
+                              <p className="module-description">{module.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {expandedModules.has(module.id) && module.lessons && module.lessons.length > 0 && (
+                          <ul className="lessons-list">
+                            {module.lessons.map((lesson, lessonIndex) => (
+                              <motion.li
+                                key={lesson.id}
+                                className="lesson-item"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.05 * lessonIndex }}
+                              >
+                                <div className="lesson-number">{module.order_index}.{lesson.order_index}</div>
+                                <div className="lesson-content">
+                                  <h4>{lesson.title}</h4>
+                                  {lesson.description && (
+                                    <p className="lesson-description">{lesson.description}</p>
+                                  )}
+                                </div>
+                                {lesson.duration_minutes && (
+                                  <div className="lesson-duration">
+                                    {lesson.duration_minutes} мин
+                                  </div>
+                                )}
+                              </motion.li>
+                            ))}
+                          </ul>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>Программа курса пока не добавлена</p>
+                  </div>
+                )}
+              </>
             )}
 
             {activeTab === 'reviews' && (

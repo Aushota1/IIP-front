@@ -1,0 +1,451 @@
+// =============================================================================
+// RICH TEXT EDITOR COMPONENTS
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Rich Text Editor Container
+// -----------------------------------------------------------------------------
+.rich-text-editor {
+  display: flex;
+  flex-direction: column;
+  border: 0.0625rem solid #ddd;
+  border-radius: $radius-sm;
+  background: white;
+  overflow: hidden;
+}
+
+// -----------------------------------------------------------------------------
+// Editor Toolbar
+// -----------------------------------------------------------------------------
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  background: #f8f9fa;
+  border-bottom: 0.0625rem solid #ddd;
+  flex-wrap: wrap;
+
+  @include respond(sm) {
+    gap: $space-1;
+    padding: $space-2;
+  }
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.toolbar-divider {
+  width: 0.0625rem;
+  height: 1.5rem;
+  background: #ddd;
+  margin: 0 $space-1;
+
+  @include respond(sm) {
+    display: none;
+  }
+}
+
+.toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 $space-2;
+  background: white;
+  border: 0.0625rem solid #ddd;
+  border-radius: $radius-sm;
+  color: #333;
+  font-size: $text-sm;
+  cursor: pointer;
+  transition: $transition-fast;
+  position: relative;
+
+  &:hover {
+    background: #f0f0f0;
+    border-color: #6e45e2;
+    color: #6e45e2;
+    transform: translateY(-0.0625rem);
+  }
+
+  &:active {
+    transform: translateY(0.0625rem);
+  }
+
+  &.active {
+    background: #6e45e2;
+    border-color: #6e45e2;
+    color: white;
+
+    &:hover {
+      background: darken(#6e45e2, 5%);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+      background: white;
+      border-color: #ddd;
+      color: #333;
+    }
+  }
+
+  svg {
+    font-size: 1rem;
+  }
+
+  .button-label {
+    font-size: $text-xs;
+    font-weight: 600;
+    white-space: nowrap;
+
+    @include respond(sm) {
+      display: none;
+    }
+  }
+
+  &.content-block-button {
+    .button-label {
+      @include respond(md) {
+        display: inline;
+      }
+    }
+  }
+
+  // Tooltip on hover
+  &::after {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: $space-1 $space-2;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: $text-xs;
+    border-radius: $radius-sm;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity $transition-fast;
+    z-index: 10;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Editor Container
+// -----------------------------------------------------------------------------
+.editor-container {
+  padding: $space-4;
+  min-height: 20rem;
+  max-height: 40rem;
+  overflow-y: auto;
+
+  @include respond(sm) {
+    padding: $space-3;
+    min-height: 15rem;
+  }
+
+  // Draft.js editor styles
+  .DraftEditor-root {
+    font-family: inherit;
+    font-size: $text-base;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .DraftEditor-editorContainer {
+    background: white;
+  }
+
+  .public-DraftEditorPlaceholder-root {
+    color: #999;
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .public-DraftEditor-content {
+    min-height: 18rem;
+
+    @include respond(sm) {
+      min-height: 13rem;
+    }
+  }
+
+  // Block styles
+  .public-DraftStyleDefault-block {
+    margin: 0 0 $space-3 0;
+  }
+
+  // Header styles
+  .public-DraftStyleDefault-h1 {
+    font-size: $text-2xl;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: $space-4 0 $space-3 0;
+    line-height: 1.3;
+  }
+
+  .public-DraftStyleDefault-h2 {
+    font-size: $text-xl;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: $space-4 0 $space-3 0;
+    line-height: 1.3;
+  }
+
+  .public-DraftStyleDefault-h3 {
+    font-size: $text-lg;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: $space-3 0 $space-2 0;
+    line-height: 1.4;
+  }
+
+  // List styles
+  .public-DraftStyleDefault-ul,
+  .public-DraftStyleDefault-ol {
+    margin: $space-3 0;
+    padding-left: $space-6;
+  }
+
+  .public-DraftStyleDefault-unorderedListItem {
+    list-style-type: disc;
+    margin-bottom: $space-2;
+  }
+
+  .public-DraftStyleDefault-orderedListItem {
+    list-style-type: decimal;
+    margin-bottom: $space-2;
+  }
+
+  // Inline styles
+  strong {
+    font-weight: 700;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  u {
+    text-decoration: underline;
+  }
+
+  code {
+    font-family: 'Courier New', Courier, monospace;
+    background: rgba(110, 69, 226, 0.1);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.1875rem;
+    font-size: 0.9em;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Editor Focus State
+// -----------------------------------------------------------------------------
+.rich-text-editor:focus-within {
+  border-color: #6e45e2;
+  box-shadow: 0 0 0 0.1875rem rgba(110, 69, 226, 0.1);
+}
+
+// -----------------------------------------------------------------------------
+// Content Block Marker Styles
+// -----------------------------------------------------------------------------
+.editor-container {
+  .content-block-marker {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    margin: $space-3 0;
+    background: linear-gradient(135deg, rgba(110, 69, 226, 0.1) 0%, rgba(110, 69, 226, 0.05) 100%);
+    border: 0.125rem solid #6e45e2;
+    border-radius: $radius-sm;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: $text-sm;
+    color: #6e45e2;
+    font-weight: 700;
+    position: relative;
+    cursor: pointer;
+    transition: $transition-fast;
+    user-select: none;
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(110, 69, 226, 0.2) 0%, rgba(110, 69, 226, 0.1) 100%);
+      border-color: darken(#6e45e2, 10%);
+      transform: translateX(0.25rem);
+      box-shadow: 0 0.25rem 0.5rem rgba(110, 69, 226, 0.2);
+    }
+
+    &:active {
+      transform: translateX(0.125rem);
+    }
+
+    &::before {
+      content: '⚡';
+      font-size: 1.2em;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .block-type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      background: #6e45e2;
+      color: white;
+      border-radius: $radius-sm;
+      font-size: $text-xs;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .block-title {
+      flex: 1;
+      font-size: $text-sm;
+      color: #333;
+      font-weight: 500;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    &::after {
+      content: '✏️';
+      font-size: 1rem;
+      opacity: 0;
+      transition: opacity $transition-fast;
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  // Type-specific marker styles
+  .content-block-marker {
+    &.formula-block {
+      border-color: #9c27b0;
+      color: #9c27b0;
+      background: linear-gradient(135deg, rgba(156, 39, 176, 0.1) 0%, rgba(156, 39, 176, 0.05) 100%);
+
+      .block-type-badge {
+        background: #9c27b0;
+      }
+
+      &::before {
+        content: '∑';
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.2) 0%, rgba(156, 39, 176, 0.1) 100%);
+        border-color: darken(#9c27b0, 10%);
+        box-shadow: 0 0.25rem 0.5rem rgba(156, 39, 176, 0.2);
+      }
+    }
+
+    &.code-block {
+      border-color: #2196f3;
+      color: #2196f3;
+      background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 150, 243, 0.05) 100%);
+
+      .block-type-badge {
+        background: #2196f3;
+      }
+
+      &::before {
+        content: '</>';
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.2) 0%, rgba(33, 150, 243, 0.1) 100%);
+        border-color: darken(#2196f3, 10%);
+        box-shadow: 0 0.25rem 0.5rem rgba(33, 150, 243, 0.2);
+      }
+    }
+
+    &.image-block {
+      border-color: #4caf50;
+      color: #4caf50;
+      background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+
+      .block-type-badge {
+        background: #4caf50;
+      }
+
+      &::before {
+        content: '🖼';
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
+        border-color: darken(#4caf50, 10%);
+        box-shadow: 0 0.25rem 0.5rem rgba(76, 175, 80, 0.2);
+      }
+    }
+
+    &.video-block {
+      border-color: #ff5722;
+      color: #ff5722;
+      background: linear-gradient(135deg, rgba(255, 87, 34, 0.1) 0%, rgba(255, 87, 34, 0.05) 100%);
+
+      .block-type-badge {
+        background: #ff5722;
+      }
+
+      &::before {
+        content: '▶';
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(255, 87, 34, 0.2) 0%, rgba(255, 87, 34, 0.1) 100%);
+        border-color: darken(#ff5722, 10%);
+        box-shadow: 0 0.25rem 0.5rem rgba(255, 87, 34, 0.2);
+      }
+    }
+
+    &.table-block {
+      border-color: #ff9800;
+      color: #ff9800;
+      background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
+
+      .block-type-badge {
+        background: #ff9800;
+      }
+
+      &::before {
+        content: '⊞';
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+        border-color: darken(#ff9800, 10%);
+        box-shadow: 0 0.25rem 0.5rem rgba(255, 152, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Pulse animation for block markers
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

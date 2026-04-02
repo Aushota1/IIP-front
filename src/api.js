@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { NetworkError, APIError } from './errors';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
@@ -22,13 +23,43 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Обработка ошибок
+// Global error interceptor for handling 401, 403, 422, and network errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const errorMessage = error.response?.data?.detail || error.message;
-    console.error('API Error:', errorMessage);
-    return Promise.reject(errorMessage);
+    // Network error (no response from server)
+    if (!error.response) {
+      console.error('Network Error:', error.message);
+      return Promise.reject(new NetworkError('Ошибка сети. Проверьте подключение к интернету.', error));
+    }
+
+    const { status, data } = error.response;
+    const message = data?.detail || data?.message || 'Ошибка сервера';
+
+    // Handle specific status codes
+    switch (status) {
+      case 401:
+        // Unauthorized - clear token and redirect to login
+        console.error('Authentication Error (401):', message);
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return Promise.reject(new APIError(401, 'Необходима авторизация'));
+
+      case 403:
+        // Forbidden - user doesn't have permission
+        console.error('Authorization Error (403):', message);
+        return Promise.reject(new APIError(403, 'У вас нет прав для выполнения этого действия'));
+
+      case 422:
+        // Validation error
+        console.error('Validation Error (422):', data);
+        return Promise.reject(new APIError(422, 'Ошибка валидации данных', data?.errors || data));
+
+      default:
+        // Other API errors
+        console.error(`API Error (${status}):`, message);
+        return Promise.reject(new APIError(status, message, data));
+    }
   }
 );
 
@@ -73,6 +104,11 @@ export const getAllCourses = async () => {
 
 export const getCourseByIdOrSlug = async (idOrSlug) => {
   const response = await api.get(`/courses/${idOrSlug}`);
+  return response.data;
+};
+
+export const getCourseContent = async (courseId) => {
+  const response = await api.get(`/courses-content/${courseId}`);
   return response.data;
 };
 
@@ -147,6 +183,24 @@ export const uploadLessonMaterial = async (file) => {
   formData.append('file', file);
   const response = await api.post('/lessons/upload-material', formData);
   return response.data;
+};
+
+// Upload lesson image
+export const uploadLessonImage = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/lessons/upload-image', formData);
+  return response.data; // { url: "http://...", type: "image" }
+};
+
+// Upload lesson video
+export const uploadLessonVideo = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/lessons/upload-video', formData, {
+    timeout: 300000, // 5 minutes for large video files
+  });
+  return response.data; // { url: "http://...", type: "video" }
 };
 
 // === Progress ===

@@ -10,8 +10,18 @@
         "FIRECRAWL_API_KEY": "fc-ddb91c14d61a477d84e8a94c320d2665"
       },
       "autoApprove": [
-        "firecrawl_scrape"
+        "firecrawl_scrape",
+        "firecrawl_search"
       ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-playwright"
+      ],
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

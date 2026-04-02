@@ -163,3 +163,16 @@
     box-shadow: $shadow;
   }
 }
+
+// -----------------------------------------------------------------------------
+// Admin section base
+// -----------------------------------------------------------------------------
+@mixin admin-section {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(0.625rem);
+  padding: $space-6;
+  border-radius: $radius-md;
+  box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.05);
+  border: 0.0625rem solid rgba(110, 69, 226, 0.1);
+  margin-bottom: $space-6;
+}

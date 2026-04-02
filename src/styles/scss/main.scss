@@ -21,6 +21,13 @@
 @use 'components/course-card';
 @use 'components/sidebar';
 @use 'components/testimonial';
+@use 'components/curriculum-builder';
+@use 'components/rich-text-editor';
+@use 'components/content-block-editor';
+@use 'components/lesson-editor';
+@use 'components/preview-panel';
+@use 'components/notification';
+@use 'components/error-boundary';
 
 // 5. Pages
 @use 'pages/all-courses';
@@ -28,3 +35,5 @@
 @use 'pages/course-page';
 @use 'pages/user-profile';
 @use 'pages/loading-spinner';
+@use 'pages/admin-panel';
+@use 'pages/lesson-page';

@@ -1,0 +1,130 @@
+// =============================================================================
+// CURRICULUM BUILDER PAGE
+// =============================================================================
+
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Curriculum Builder Container
+// -----------------------------------------------------------------------------
+.curriculum-builder {
+  @include admin-section;
+}
+
+.curriculum-header {
+  @include flex-between;
+  margin-bottom: $space-5;
+  padding-bottom: $space-4;
+  border-bottom: 0.0625rem solid #eaeaea;
+
+  h2 {
+    margin: 0;
+    @include fluid-type($text-lg, $text-xl);
+    color: #1a1a2e;
+    font-weight: 700;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Course Selector
+// -----------------------------------------------------------------------------
+.course-selector {
+  margin-bottom: $space-5;
+  padding: $space-4;
+  background: rgba(110, 69, 226, 0.05);
+  border-radius: $radius-sm;
+  border: 0.0625rem dashed rgba(110, 69, 226, 0.2);
+
+  label {
+    display: block;
+    margin-bottom: $space-2;
+    font-weight: 600;
+    color: #333;
+    font-size: $text-sm;
+  }
+
+  select {
+    width: 100%;
+    padding: $space-3;
+    border: 0.0625rem solid #ddd;
+    border-radius: $radius-sm;
+    font-size: $text-base;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: #6e45e2;
+      box-shadow: 0 0 0 0.1875rem rgba(110, 69, 226, 0.1);
+    }
+
+    &:hover {
+      border-color: #6e45e2;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Empty State
+// -----------------------------------------------------------------------------
+.empty-state {
+  text-align: center;
+  padding: $space-8 $space-4;
+  color: #999;
+
+  p {
+    margin-bottom: $space-4;
+    font-size: $text-base;
+    line-height: 1.6;
+  }
+
+  .btn {
+    margin-top: $space-2;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Loading Container
+// -----------------------------------------------------------------------------
+.loading-container {
+  text-align: center;
+  padding: $space-8 $space-4;
+
+  p {
+    margin-top: $space-4;
+    color: #666;
+    font-size: $text-base;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Error Container
+// -----------------------------------------------------------------------------
+.error-container {
+  text-align: center;
+  padding: $space-6 $space-4;
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    margin-bottom: $space-4;
+    padding: $space-3 $space-4;
+    background: rgba(255, 95, 86, 0.1);
+    border: 0.0625rem solid rgba(255, 95, 86, 0.3);
+    border-radius: $radius-sm;
+    color: #ff5f56;
+    font-weight: 500;
+  }
+
+  .error-icon {
+    font-size: $text-lg;
+  }
+
+  .btn {
+    margin-top: $space-2;
+  }
+}

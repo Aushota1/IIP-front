@@ -16,43 +16,46 @@ import LessonPage from './pages/LessonPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import { UserProvider } from './context/UserContext';
+import { NotificationProvider } from './components/NotificationContainer';
 
 function App() {
   return (
     <Router>
-      <UserProvider>
-        <Routes>
-          {/* Если хочешь, чтобы / сразу вело на задачи, оставь это */}
-          <Route path="/" element={<Home />} />
+      <NotificationProvider>
+        <UserProvider>
+          <Routes>
+            {/* Если хочешь, чтобы / сразу вело на задачи, оставь это */}
+            <Route path="/" element={<Home />} />
 
-          {/* Или, если нужна главная страница Home, замени строку выше на эту */}
-          {/* <Route path="/" element={<Home />} /> */}
+            {/* Или, если нужна главная страница Home, замени строку выше на эту */}
+            {/* <Route path="/" element={<Home />} /> */}
 
-          <Route path="/courses/:courseSlug" element={<CoursePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/courses" element={<AllCourses />} />
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/courses/:courseSlug" element={<CoursePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/courses" element={<AllCourses />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-          {/* Страницы задач */}
-          <Route path="/tasks" element={<TasksList />} />
-          <Route path="/tasks/:taskId" element={<TaskDetail />} />
+            {/* Страницы задач */}
+            <Route path="/tasks" element={<TasksList />} />
+            <Route path="/tasks/:taskId" element={<TaskDetail />} />
 
-          {/* Страница урока */}
-          <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
+            {/* Страница урока */}
+            <Route path="/course-content/:courseId" element={<LessonPage />} />
 
-          {/* Админ-панель */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminPanel />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </UserProvider>
+            {/* Админ-панель */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute role="admin">
+                  <AdminPanel />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </UserProvider>
+      </NotificationProvider>
     </Router>
   );
 }
