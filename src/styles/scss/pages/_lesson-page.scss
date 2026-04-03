@@ -25,7 +25,7 @@
 }
 
 // Боковая панель с содержанием
-.lesson-sidebar {
+.lesson-page-sidebar.lesson-sidebar {
   background: #ffffff;
   border-right: 2px solid #e5e7eb;
   padding: 0;
@@ -137,7 +137,7 @@
           margin: 0.5rem 0 0 0;
 
           .lesson-item {
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            padding: 0.75rem 1rem;
             margin-bottom: 0.25rem;
             border-radius: 8px;
             cursor: pointer;
@@ -146,17 +146,51 @@
             font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             position: relative;
 
-            .check-icon {
-              color: #10b981;
-              font-size: 0.85rem;
-              font-weight: bold;
+            .completion-indicator {
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              border: 2px solid #d1d5db;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+              transition: all 0.2s ease;
+              background: #ffffff;
+
+              &.completed {
+                background: #10b981;
+                border-color: #10b981;
+              }
+
+              .check-icon {
+                color: #ffffff;
+                font-size: 0.75rem;
+                font-weight: bold;
+              }
+            }
+
+            .lesson-text {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              gap: 0.25rem;
+
+              .lesson-duration {
+                color: #9ca3af;
+                font-size: 0.85rem;
+              }
             }
 
             &:hover {
               background: #f3f4f6;
+
+              .completion-indicator:not(.completed) {
+                border-color: #9ca3af;
+              }
             }
 
             &.active {
@@ -164,11 +198,17 @@
               color: #667eea;
               font-weight: 500;
               border-left: 3px solid #667eea;
-              padding-left: calc(2.5rem - 3px);
+              padding-left: calc(1rem - 3px);
+
+              .completion-indicator:not(.completed) {
+                border-color: #667eea;
+              }
             }
 
             &.completed:not(.active) {
-              color: #6b7280;
+              .lesson-text {
+                color: #6b7280;
+              }
             }
           }
         }
@@ -430,5 +470,47 @@
   p {
     color: #4b5563;
     line-height: 1.6;
+  }
+}
+
+// Lesson navigation (Next button)
+.lesson-navigation {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn-next-lesson {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 0.875rem 2rem;
+      font-size: 1rem;
+    }
   }
 }

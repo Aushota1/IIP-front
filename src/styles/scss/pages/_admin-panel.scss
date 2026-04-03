@@ -162,6 +162,23 @@
   }
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-5;
+
+  h2 {
+    margin: 0;
+  }
+
+  @include respond(sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-3;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Forms
 // -----------------------------------------------------------------------------
@@ -349,6 +366,18 @@
   align-items: center;
   gap: $space-4;
   flex: 1;
+  min-width: 0;
+}
+
+.admin-list-actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+
+  @include respond(sm) {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .admin-list-thumb {
@@ -374,6 +403,18 @@
   color: #666;
   margin: 0;
   flex-wrap: wrap;
+}
+
+.admin-list-description {
+  font-size: $text-sm;
+  color: #777;
+  margin: $space-1 0 0;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .admin-empty {
@@ -468,4 +509,213 @@
     background: rgba(123, 97, 255, 0.15);
     color: #7b61ff;
   }
+}
+
+// -----------------------------------------------------------------------------
+// Module Header (Light Theme for Admin Panel)
+// -----------------------------------------------------------------------------
+.admin-panel .module-header {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+  padding: $space-3 $space-4;
+  background: #ffffff;
+  border: 0.0625rem solid #e0e0e0;
+  outline: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  min-height: auto;
+
+  &:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    border-color: #8b5cf6;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: $radius-md 0 0 $radius-md;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::before {
+    width: 4px;
+  }
+}
+
+.admin-panel .module-number {
+  min-width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: $radius-md;
+  @include flex-center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: $text-sm;
+  color: #fff;
+  box-shadow: 0 0.25rem 0.5rem rgba(139, 92, 246, 0.3);
+}
+
+.admin-panel .module-info {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: $space-3;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    font-size: $text-base;
+    color: #1a1a2e;
+    font-weight: 600;
+    display: inline;
+    text-align: left;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+.admin-panel .module-description {
+  margin: 0;
+  padding: 0;
+  font-size: $text-sm;
+  color: #666;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-panel .module-text {
+  display: flex;
+  flex-direction: row;
+  gap: $space-3;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+// -----------------------------------------------------------------------------
+// Lessons List (Light Theme for Admin Panel)
+// -----------------------------------------------------------------------------
+.admin-panel .lessons-list {
+  @include flex-column;
+  gap: 0;
+  padding: 0 0 0 $space-5;
+  list-style: none;
+  margin: $space-4 0 0 $space-8;
+  background: transparent;
+  border: none;
+  outline: none;
+  animation: slideDown 0.3s ease-out;
+  border-left: 2px solid rgba(139, 92, 246, 0.3);
+  position: relative;
+}
+
+.admin-panel .lesson-item {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+  padding: $space-3 $space-4;
+  background: #ffffff;
+  border: 0.0625rem solid #e0e0e0;
+  outline: none;
+  border-radius: $radius-md;
+  margin-bottom: $space-2;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+    transform: translateX(0.25rem);
+    border-color: #8b5cf6;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: $radius-md 0 0 $radius-md;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::before {
+    width: 4px;
+  }
+}
+
+.admin-panel .lesson-number {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: $radius-sm;
+  @include flex-center;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: $text-xs;
+  color: #8b5cf6;
+  transition: all 0.2s ease;
+}
+
+.admin-panel .lesson-item:hover .lesson-number {
+  background: rgba(139, 92, 246, 0.2);
+  color: #6366f1;
+}
+
+.admin-panel .lesson-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+
+  h4 {
+    margin: 0 0 $space-1 0;
+    font-size: $text-base;
+    color: #1a1a2e;
+    font-weight: 500;
+    word-wrap: break-word;
+  }
+}
+
+.admin-panel .lesson-description {
+  margin: 0;
+  font-size: $text-sm;
+  color: #666;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.admin-panel .lesson-duration {
+  flex-shrink: 0;
+  padding: $space-1 $space-3;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  color: #8b5cf6;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.admin-panel .lesson-item:hover .lesson-duration {
+  background: rgba(139, 92, 246, 0.2);
+  color: #6366f1;
 }

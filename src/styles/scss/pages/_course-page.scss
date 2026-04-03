@@ -267,7 +267,7 @@
   }
 }
 
-.module-header {
+.course-page .module-header {
   display: flex;
   gap: $space-4;
   align-items: flex-start;
@@ -305,7 +305,7 @@
   }
 }
 
-.module-number {
+.course-page .module-number {
   min-width: 2.5rem;
   height: 2.5rem;
   background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
@@ -357,7 +357,7 @@
   text-align: left;
 }
 
-.lessons-list {
+.course-page .lessons-list {
   @include flex-column;
   gap: 0;
   padding: 0 0 0 $space-5;
@@ -382,7 +382,7 @@
   }
 }
 
-.lesson-item {
+.course-page .lesson-item {
   display: flex;
   gap: $space-3;
   align-items: center;
@@ -421,7 +421,7 @@
   }
 }
 
-.lesson-number {
+.course-page .lesson-number {
   min-width: 1.75rem;
   height: 1.75rem;
   background: rgba(139, 92, 246, 0.2);
@@ -432,11 +432,11 @@
   font-size: $text-xs;
   color: #a78bfa;
   transition: all 0.2s ease;
+}
 
-  .lesson-item:hover & {
-    background: rgba(139, 92, 246, 0.3);
-    color: #c4b5fd;
-  }
+.course-page .lesson-item:hover .lesson-number {
+  background: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
 }
 
 .course-page .lesson-content {
@@ -461,7 +461,7 @@
   word-wrap: break-word;
 }
 
-.lesson-duration {
+.course-page .lesson-duration {
   flex-shrink: 0;
   padding: $space-1 $space-3;
   background: rgba(139, 92, 246, 0.15);
@@ -471,11 +471,11 @@
   font-weight: 600;
   white-space: nowrap;
   transition: all 0.2s ease;
+}
 
-  .lesson-item:hover & {
-    background: rgba(139, 92, 246, 0.25);
-    color: #c4b5fd;
-  }
+.course-page .lesson-item:hover .lesson-duration {
+  background: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
 }
 
 .loading-state,

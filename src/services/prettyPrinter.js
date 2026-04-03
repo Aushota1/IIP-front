@@ -153,6 +153,19 @@ class PrettyPrinter {
       }
     });
     
+    // Check if the last block is a content block marker
+    // If so, add an empty block after it to allow cursor placement
+    if (draftBlocks.length > 0) {
+      const lastBlock = draftBlocks[draftBlocks.length - 1];
+      const lastBlockText = lastBlock.getText();
+      const isMarkerBlock = lastBlockText.match(/^БЛОК!!!\s*\[(\w+)\]\s*(.+)$/);
+      
+      if (isMarkerBlock) {
+        // Add empty block after the marker
+        draftBlocks.push(this.createTextBlock(''));
+      }
+    }
+    
     // Create ContentState from blocks
     const contentState = ContentState.createFromBlockArray(draftBlocks);
     const editorState = EditorState.createWithContent(contentState);

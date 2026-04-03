@@ -57,6 +57,34 @@ const RichTextEditor = ({
   };
 
   /**
+   * Handle return key press
+   * Ensures that pressing Enter after a content block marker creates a new editable block
+   */
+  const handleReturn = (e, editorState) => {
+    const selection = editorState.getSelection();
+    const content = editorState.getCurrentContent();
+    const currentBlock = content.getBlockForKey(selection.getStartKey());
+    const blockText = currentBlock.getText();
+    
+    // Check if current block is a content block marker
+    const isMarkerBlock = blockText.match(/^БЛОК!!!\s*\[(\w+)\]\s*(.+)$/);
+    
+    if (isMarkerBlock) {
+      // Split the block to create a new editable block after the marker
+      const newContentState = Modifier.splitBlock(content, selection);
+      const newEditorState = EditorState.push(
+        editorState,
+        newContentState,
+        'split-block'
+      );
+      onChange(newEditorState);
+      return 'handled';
+    }
+    
+    return 'not-handled';
+  };
+
+  /**
    * Map keyboard shortcuts to commands
    * @param {KeyboardEvent} e - Keyboard event
    * @returns {string|null} - Command name or null
@@ -150,19 +178,39 @@ const RichTextEditor = ({
     const markerText = `БЛОК!!! [${blockData.type}] ${blockData.title}`;
 
     // Insert marker
-    const newContentState = Modifier.insertText(
+    let newContentState = Modifier.insertText(
       contentState,
       selection,
       markerText,
       null
     );
 
-    // Create new editor state
-    const newEditorState = EditorState.push(
+    // Add a new line after the marker to allow cursor placement
+    const blockMap = newContentState.getBlockMap();
+    const blockArray = blockMap.toArray();
+    const lastBlock = blockArray[blockArray.length - 1];
+    
+    // Check if the marker was inserted at the end or if it's the last block
+    const selectionAfterInsert = newContentState.getSelectionAfter();
+    const currentBlock = newContentState.getBlockForKey(selectionAfterInsert.getStartKey());
+    const nextBlock = newContentState.getBlockAfter(currentBlock.getKey());
+    
+    // If there's no block after the current one, or if we're at the end of the current block,
+    // insert a new empty block
+    if (!nextBlock || selectionAfterInsert.getStartOffset() === currentBlock.getLength()) {
+      newContentState = Modifier.splitBlock(newContentState, selectionAfterInsert);
+    }
+
+    // Create new editor state and move cursor to the new line
+    let newEditorState = EditorState.push(
       editorState,
       newContentState,
       'insert-characters'
     );
+
+    // Move selection to the new empty block after the marker
+    const newSelection = newContentState.getSelectionAfter();
+    newEditorState = EditorState.forceSelection(newEditorState, newSelection);
 
     onChange(newEditorState);
   };
@@ -241,6 +289,7 @@ const RichTextEditor = ({
           editorState={editorState}
           onChange={onChange}
           handleKeyCommand={handleKeyCommand}
+          handleReturn={handleReturn}
           keyBindingFn={keyBindingFn}
           placeholder={placeholder}
           spellCheck={true}

@@ -316,6 +316,70 @@ describe('PrettyPrinter', () => {
 
       expect(result.contentBlocks[0].explanation).toBe('');
     });
+
+    test('should add empty block after content block marker at the end', () => {
+      const sections = [
+        { id: 1, type: 'text', content: 'Introduction' },
+        {
+          id: 2,
+          type: 'code',
+          language: 'javascript',
+          content: 'console.log("test");'
+        }
+      ];
+
+      const result = prettyPrinter.format(sections);
+      const blocks = result.editorState.getCurrentContent().getBlocksAsArray();
+
+      // Should have 3 blocks: text, marker, empty
+      expect(blocks).toHaveLength(3);
+      expect(blocks[0].getText()).toBe('Introduction');
+      expect(blocks[1].getText()).toContain('БЛОК!!! [code]');
+      expect(blocks[2].getText()).toBe(''); // Empty block for cursor placement
+    });
+
+    test('should not add empty block if last section is text', () => {
+      const sections = [
+        {
+          id: 1,
+          type: 'code',
+          language: 'javascript',
+          content: 'console.log("test");'
+        },
+        { id: 2, type: 'text', content: 'Conclusion' }
+      ];
+
+      const result = prettyPrinter.format(sections);
+      const blocks = result.editorState.getCurrentContent().getBlocksAsArray();
+
+      // Should have 2 blocks: marker, text (no empty block needed)
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0].getText()).toContain('БЛОК!!! [code]');
+      expect(blocks[1].getText()).toBe('Conclusion');
+    });
+
+    test('should add empty block after any type of content block at the end', () => {
+      const contentBlockTypes = [
+        { type: 'code', language: 'python', content: 'print("test")' },
+        { type: 'formula', content: 'E = mc^2' },
+        { type: 'image', url: 'https://example.com/img.jpg' },
+        { type: 'video', url: 'https://example.com/video.mp4' }
+      ];
+
+      contentBlockTypes.forEach((blockData) => {
+        const sections = [
+          { id: 1, type: 'text', content: 'Text' },
+          { id: 2, ...blockData }
+        ];
+
+        const result = prettyPrinter.format(sections);
+        const blocks = result.editorState.getCurrentContent().getBlocksAsArray();
+
+        // Should have 3 blocks: text, marker, empty
+        expect(blocks).toHaveLength(3);
+        expect(blocks[2].getText()).toBe(''); // Empty block for cursor placement
+      });
+    });
   });
 
   describe('createTextBlock', () => {

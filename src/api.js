@@ -125,13 +125,28 @@ export const uploadCourseImage = async (file) => {
 };
 
 // === Instructors ===
+export const getAllInstructors = async () => {
+  const response = await api.get('/instructors');
+  return response.data;
+};
+
 export const createInstructor = async (instructorData) => {
   const response = await api.post('/instructors', instructorData);
   return response.data;
 };
 
 export const getInstructorsByCourse = async (courseId) => {
-  const response = await api.get('/instructors', { params: { course_id: courseId } });
+  const response = await api.get(`/instructors/course/${courseId}`);
+  return response.data;
+};
+
+export const addInstructorToCourse = async (courseId, instructorId, orderIndex = 0) => {
+  const response = await api.post(`/instructors/course/${courseId}/add/${instructorId}?order_index=${orderIndex}`);
+  return response.data;
+};
+
+export const removeInstructorFromCourse = async (courseId, instructorId) => {
+  const response = await api.delete(`/instructors/course/${courseId}/remove/${instructorId}`);
   return response.data;
 };
 
@@ -210,11 +225,11 @@ export const getCourseProgress = async () => {
   return response.data;
 };
 
-export const completeLesson = async (courseId, contentId) => {
-  console.log('completeLesson called with:', { course_id: courseId, content_id: contentId });
+export const completeLesson = async (courseId, lessonId) => {
+  console.log('completeLesson called with:', { course_id: courseId, lesson_id: lessonId });
   const response = await api.post('/progress/complete-lesson', {
     course_id: courseId,
-    content_id: contentId,
+    lesson_id: lessonId,
   });
   return response.data;
 };
@@ -261,10 +276,10 @@ export const testApi = async () => {
   return await api.get('/test');
 };
 
-export const undoCompleteLesson = async (courseId, contentId) => {
+export const undoCompleteLesson = async (courseId, lessonId) => {
   const response = await api.post('/progress/undo-complete-lesson', {
     course_id: courseId,
-    content_id: contentId,
+    lesson_id: lessonId,
   });
   return response.data;
 };

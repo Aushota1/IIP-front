@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import SimpleHeader from '../components/SimpleHeader';
 import FormulaBlock from '../components/FormulaBlock';
 import CodeBlockHighlight from '../components/CodeBlockHighlight';
-import { getCourseContent } from '../api';
+import { getCourseContent, completeLesson, getCourseProgress } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/scss/pages/_lesson-page.scss';
 
@@ -14,12 +14,15 @@ const LessonPage = () => {
   const [currentLessonId, setCurrentLessonId] = useState(null);
   const [progress, setProgress] = useState(0);
   const [completedSections, setCompletedSections] = useState(new Set());
+  const [completedLessons, setCompletedLessons] = useState(new Set());
   const [expandedModules, setExpandedModules] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
   useEffect(() => {
     fetchCourseContent();
+    fetchUserProgress();
   }, [courseId]);
 
   useEffect(() => {
@@ -45,6 +48,79 @@ const LessonPage = () => {
       setError('Не удалось загрузить содержимое курса');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserProgress = async () => {
+    try {
+      const progressData = await getCourseProgress();
+      const courseProgress = progressData.find(p => p.course_id === parseInt(courseId));
+      
+      if (courseProgress && courseProgress.completed_lessons) {
+        setCompletedLessons(new Set(courseProgress.completed_lessons));
+        setProgress(courseProgress.progress_percent || 0);
+      }
+    } catch (err) {
+      console.error('Error loading user progress:', err);
+      // Не показываем ошибку пользователю, просто логируем
+    }
+  };
+
+  const handleCompleteLesson = async () => {
+    if (!currentLessonId || isMarkingComplete) return;
+
+    setIsMarkingComplete(true);
+    
+    try {
+      // Отправляем запрос на завершение урока
+      // content_id в данном случае равен lesson_id
+      const response = await completeLesson(parseInt(courseId), currentLessonId);
+      
+      // Обновляем локальное состояние
+      const newCompletedLessons = new Set(completedLessons);
+      newCompletedLessons.add(currentLessonId);
+      setCompletedLessons(newCompletedLessons);
+      
+      // Обновляем прогресс
+      if (response.progress_percent !== undefined) {
+        setProgress(response.progress_percent);
+      }
+
+      // Переходим к следующему уроку
+      goToNextLesson();
+    } catch (err) {
+      console.error('Error marking lesson as complete:', err);
+      alert('Не удалось отметить урок как завершенный. Попробуйте еще раз.');
+    } finally {
+      setIsMarkingComplete(false);
+    }
+  };
+
+  const goToNextLesson = () => {
+    if (!courseContent || !currentLessonId) return;
+
+    // Находим текущий урок и следующий
+    let foundCurrent = false;
+    let nextLesson = null;
+
+    for (const module of courseContent.modules) {
+      for (const lesson of module.lessons) {
+        if (foundCurrent) {
+          nextLesson = lesson;
+          break;
+        }
+        if (lesson.id === currentLessonId) {
+          foundCurrent = true;
+        }
+      }
+      if (nextLesson) break;
+    }
+
+    // Если есть следующий урок, переключаемся на него
+    if (nextLesson) {
+      selectLesson(nextLesson.id);
+      // Прокручиваем к началу контента
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -86,6 +162,15 @@ const LessonPage = () => {
     return null;
   };
 
+  const isLastLesson = () => {
+    if (!courseContent || !currentLessonId) return true;
+
+    const allLessons = courseContent.modules.flatMap(m => m.lessons);
+    const currentIndex = allLessons.findIndex(l => l.id === currentLessonId);
+    
+    return currentIndex === allLessons.length - 1;
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="error-message">{error}</div>;
   if (!courseContent) return <div className="error-message">Курс не найден</div>;
@@ -114,7 +199,7 @@ const LessonPage = () => {
       
       <div className="lesson-container">
         {/* Боковая панель с содержанием */}
-        <aside className="lesson-sidebar">
+        <aside className="lesson-page-sidebar lesson-sidebar">
           <div className="course-info">
             <h3>{courseContent.course_title}</h3>
             <div className="progress-bar">
@@ -142,13 +227,18 @@ const LessonPage = () => {
                       {module.lessons.map((lesson) => (
                         <li 
                           key={lesson.id}
-                          className={`lesson-item ${lesson.id === currentLessonId ? 'active' : ''}`}
+                          className={`lesson-item ${lesson.id === currentLessonId ? 'active' : ''} ${completedLessons.has(lesson.id) ? 'completed' : ''}`}
                           onClick={() => selectLesson(lesson.id)}
                         >
-                          {lesson.title}
-                          {lesson.duration_minutes && (
-                            <span className="lesson-duration"> ({lesson.duration_minutes} мин)</span>
-                          )}
+                          <span className={`completion-indicator ${completedLessons.has(lesson.id) ? 'completed' : ''}`}>
+                            {completedLessons.has(lesson.id) && <span className="check-icon">✓</span>}
+                          </span>
+                          <span className="lesson-text">
+                            {lesson.title}
+                            {lesson.duration_minutes && (
+                              <span className="lesson-duration"> ({lesson.duration_minutes} мин)</span>
+                            )}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -166,94 +256,107 @@ const LessonPage = () => {
               <h1>{currentLesson.title}</h1>
               
               {currentLesson.sections && currentLesson.sections.length > 0 ? (
-                currentLesson.sections.map((section) => (
-                  <section 
-                    key={section.id} 
-                    className={`lesson-section lesson-section--${section.type}`}
-                  >
-                    {section.type === 'heading' && (
-                      <>
-                        {section.level === 1 && <h1>{section.content}</h1>}
-                        {section.level === 2 && <h2>{section.content}</h2>}
-                        {section.level === 3 && <h3>{section.content}</h3>}
-                        
-                        {/* Render section_in_blok for heading */}
-                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
-                          <div key={idx} className="sub-section">
-                            {subSection.type === 'text' && <p>{subSection.content}</p>}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    
-                    {section.type === 'text' && (
-                      <div className="text-content">
-                        <p>{section.content}</p>
-                      </div>
-                    )}
-                    
-                    {section.type === 'formula' && (
-                      <>
-                        {section.title && <h3>{section.title}</h3>}
-                        <FormulaBlock formula={section.content} />
-                        
-                        {/* Render section_in_blok for formula */}
-                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
-                          <div key={idx} className="sub-section">
-                            {subSection.type === 'text' && <p>{subSection.content}</p>}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    
-                    {section.type === 'code' && (
-                      <>
-                        {section.title && <h3>{section.title}</h3>}
-                        <CodeBlockHighlight 
-                          code={section.content}
-                          language={section.language || 'python'}
-                        />
-                        
-                        {/* Render section_in_blok for code */}
-                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
-                          <div key={idx} className="sub-section">
-                            {subSection.type === 'text' && <p>{subSection.content}</p>}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    
-                    {section.type === 'image' && (
-                      <div className="image-content">
-                        {section.title && <h3>{section.title}</h3>}
-                        <img src={section.url} alt={section.alt || section.title || 'Изображение'} />
-                        
-                        {/* Render section_in_blok for image */}
-                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
-                          <div key={idx} className="sub-section">
-                            {subSection.type === 'text' && <p>{subSection.content}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {section.type === 'video' && (
-                      <div className="video-content">
-                        {section.title && <h3>{section.title}</h3>}
-                        <video controls src={section.url}>
-                          Ваш браузер не поддерживает видео.
-                        </video>
-                        
-                        {/* Render section_in_blok for video */}
-                        {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
-                          <div key={idx} className="sub-section">
-                            {subSection.type === 'text' && <p>{subSection.content}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                ))
+                <>
+                  {currentLesson.sections.map((section) => (
+                    <section 
+                      key={section.id} 
+                      className={`lesson-section lesson-section--${section.type}`}
+                    >
+                      {section.type === 'heading' && (
+                        <>
+                          {section.level === 1 && <h1>{section.content}</h1>}
+                          {section.level === 2 && <h2>{section.content}</h2>}
+                          {section.level === 3 && <h3>{section.content}</h3>}
+                          
+                          {/* Render section_in_blok for heading */}
+                          {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                            <div key={idx} className="sub-section">
+                              {subSection.type === 'text' && <p>{subSection.content}</p>}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      
+                      {section.type === 'text' && (
+                        <div className="text-content">
+                          <p>{section.content}</p>
+                        </div>
+                      )}
+                      
+                      {section.type === 'formula' && (
+                        <>
+                          {section.title && <h3>{section.title}</h3>}
+                          <FormulaBlock formula={section.content} />
+                          
+                          {/* Render section_in_blok for formula */}
+                          {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                            <div key={idx} className="sub-section">
+                              {subSection.type === 'text' && <p>{subSection.content}</p>}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      
+                      {section.type === 'code' && (
+                        <>
+                          {section.title && <h3>{section.title}</h3>}
+                          <CodeBlockHighlight 
+                            code={section.content}
+                            language={section.language || 'python'}
+                          />
+                          
+                          {/* Render section_in_blok for code */}
+                          {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                            <div key={idx} className="sub-section">
+                              {subSection.type === 'text' && <p>{subSection.content}</p>}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      
+                      {section.type === 'image' && (
+                        <div className="image-content">
+                          {section.title && <h3>{section.title}</h3>}
+                          <img src={section.url} alt={section.alt || section.title || 'Изображение'} />
+                          
+                          {/* Render section_in_blok for image */}
+                          {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                            <div key={idx} className="sub-section">
+                              {subSection.type === 'text' && <p>{subSection.content}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {section.type === 'video' && (
+                        <div className="video-content">
+                          {section.title && <h3>{section.title}</h3>}
+                          <video controls src={section.url}>
+                            Ваш браузер не поддерживает видео.
+                          </video>
+                          
+                          {/* Render section_in_blok for video */}
+                          {section.section_in_blok && section.section_in_blok.map((subSection, idx) => (
+                            <div key={idx} className="sub-section">
+                              {subSection.type === 'text' && <p>{subSection.content}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  ))}
+                  
+                  {/* Кнопка "Далее" */}
+                  <div className="lesson-navigation">
+                    <button 
+                      className="btn-next-lesson"
+                      onClick={handleCompleteLesson}
+                      disabled={isMarkingComplete}
+                    >
+                      {isMarkingComplete ? 'Сохранение...' : (isLastLesson() ? 'Завершить урок' : 'Далее')}
+                    </button>
+                  </div>
+                </>
               ) : (
                 <div className="no-content">
                   <p>Содержимое урока пока не добавлено.</p>

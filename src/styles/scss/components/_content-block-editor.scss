@@ -134,7 +134,7 @@
   padding: $space-6;
   overflow-y: auto;
   flex: 1;
-  background: #1a1a2e;
+  background: #f8f9fa;
 
   @include respond(sm) {
     padding: $space-4;
@@ -145,15 +145,15 @@
   }
 
   &::-webkit-scrollbar-track {
-    background: #2d2d44;
+    background: #e0e0e0;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #666;
+    background: #999;
     border-radius: 4px;
 
     &:hover {
-      background: #888;
+      background: #666;
     }
   }
 }

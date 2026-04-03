@@ -5,7 +5,11 @@ import {
   uploadCourseImage,
   createInstructor,
   uploadInstructorPhoto,
+  getAllInstructors,
   getInstructorsByCourse,
+  addInstructorToCourse,
+  updateInstructor,
+  deleteInstructor,
 } from '../api';
 import Sidebar from '../components/Sidebar';
 import CurriculumBuilder from '../components/CurriculumBuilder';
@@ -28,7 +32,7 @@ const EMPTY_INSTRUCTOR_FORM = {
   position: '',
   bio: '',
   photo: null,
-  social: [{ platform: 'github', url: '' }],
+  social: [{ icon: 'github', url: '' }],
 };
 
 
@@ -45,14 +49,18 @@ const AdminPanel = () => {
   
   // Instructor form
   const [instructorForm, setInstructorForm] = useState(EMPTY_INSTRUCTOR_FORM);
+  const [allInstructors, setAllInstructors] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [instructorPhotoPreview, setInstructorPhotoPreview] = useState(null);
+  const [showInstructorForm, setShowInstructorForm] = useState(false);
+  const [editingInstructorId, setEditingInstructorId] = useState(null);
   
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     loadCourses();
+    loadAllInstructors();
   }, []);
 
   useEffect(() => {
@@ -81,6 +89,15 @@ const AdminPanel = () => {
       setInstructors(data);
     } catch (err) {
       console.error('Failed to load instructors:', err);
+    }
+  };
+
+  const loadAllInstructors = async () => {
+    try {
+      const data = await getAllInstructors();
+      setAllInstructors(data);
+    } catch (err) {
+      console.error('Failed to load all instructors:', err);
     }
   };
 
@@ -182,7 +199,7 @@ const AdminPanel = () => {
   const addSocialLink = () => {
     setInstructorForm((prev) => ({
       ...prev,
-      social: [...prev.social, { platform: 'github', url: '' }],
+      social: [...prev.social, { icon: 'github', url: '' }],
     }));
   };
 
@@ -195,22 +212,18 @@ const AdminPanel = () => {
 
   const handleSubmitInstructor = async (e) => {
     e.preventDefault();
-    if (!selectedCourse) {
-      setMessage({ type: 'error', text: 'Выберите курс для добавления преподавателя' });
-      return;
-    }
-
     setLoading(true);
     setMessage(null);
     try {
+      // 1. Загрузить фото (если есть)
       let photoUrl = instructorPhotoPreview;
       if (instructorForm.photo instanceof File) {
         const uploadResult = await uploadInstructorPhoto(instructorForm.photo);
         photoUrl = uploadResult.url;
       }
       
+      // 2. Создать или обновить преподавателя
       const instructorData = {
-        course_id: selectedCourse.id,
         name: instructorForm.name,
         position: instructorForm.position,
         bio: instructorForm.bio,
@@ -218,17 +231,78 @@ const AdminPanel = () => {
         social: instructorForm.social.filter(s => s.url),
       };
       
-      await createInstructor(instructorData);
+      if (editingInstructorId) {
+        // Обновление существующего преподавателя
+        await updateInstructor(editingInstructorId, instructorData);
+        setMessage({ type: 'success', text: 'Преподаватель обновлён' });
+      } else {
+        // Создание нового преподавателя
+        const newInstructor = await createInstructor(instructorData);
+        
+        // Если выбран курс, добавить преподавателя к курсу
+        if (selectedCourse) {
+          await addInstructorToCourse(selectedCourse.id, newInstructor.id, instructors.length);
+          await loadInstructors();
+        }
+        
+        setMessage({ type: 'success', text: 'Преподаватель создан' });
+      }
       
-      setMessage({ type: 'success', text: 'Преподаватель добавлен' });
       setInstructorForm(EMPTY_INSTRUCTOR_FORM);
       setInstructorPhotoPreview(null);
-      await loadInstructors();
+      setShowInstructorForm(false);
+      setEditingInstructorId(null);
+      await loadAllInstructors();
     } catch (err) {
       setMessage({ type: 'error', text: `Ошибка: ${err}` });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditInstructor = (instructor) => {
+    setEditingInstructorId(instructor.id);
+    setInstructorForm({
+      name: instructor.name || '',
+      position: instructor.position || '',
+      bio: instructor.bio || '',
+      photo: null,
+      social: instructor.social && instructor.social.length > 0 
+        ? instructor.social 
+        : [{ icon: 'github', url: '' }],
+    });
+    setInstructorPhotoPreview(instructor.photo || null);
+    setShowInstructorForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteInstructor = async (instructorId) => {
+    if (!window.confirm('Вы уверены, что хотите удалить этого преподавателя?')) {
+      return;
+    }
+    
+    setLoading(true);
+    setMessage(null);
+    try {
+      await deleteInstructor(instructorId);
+      setMessage({ type: 'success', text: 'Преподаватель удалён' });
+      await loadAllInstructors();
+      if (selectedCourse) {
+        await loadInstructors();
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: `Ошибка: ${err}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelInstructor = () => {
+    setShowInstructorForm(false);
+    setEditingInstructorId(null);
+    setInstructorForm(EMPTY_INSTRUCTOR_FORM);
+    setInstructorPhotoPreview(null);
+    setMessage(null);
   };
 
 
@@ -238,7 +312,7 @@ const AdminPanel = () => {
       <div className="admin-panel-layout">
         <Sidebar />
 
-        <div className="admin-panel-container">
+        <div className="admin-panel admin-panel-container">
           <header className="admin-panel-header">
             <h1>Панель администратора</h1>
             <div className="admin-stats">
@@ -425,139 +499,177 @@ const AdminPanel = () => {
           {/* INSTRUCTORS TAB */}
           {activeTab === 'instructors' && (
             <>
-              <section className="admin-section">
-                <h2>Добавить преподавателя</h2>
-                
-                <div className="course-selector">
-                  <label>
-                    Выберите курс *
-                    <select
-                      value={selectedCourse?.id || ''}
-                      onChange={(e) => {
-                        const course = courses.find(c => c.id === parseInt(e.target.value));
-                        setSelectedCourse(course);
-                      }}
-                    >
-                      <option value="">-- Выберите курс --</option>
-                      {courses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                          {course.title}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <form className="admin-form" onSubmit={handleSubmitInstructor}>
-                  <div className="form-row">
-                    <label>
-                      Имя преподавателя *
-                      <input
-                        name="name"
-                        value={instructorForm.name}
-                        onChange={handleInstructorChange}
-                        required
-                        placeholder="Анна Серова"
-                      />
-                    </label>
-                    <label>
-                      Должность *
-                      <input
-                        name="position"
-                        value={instructorForm.position}
-                        onChange={handleInstructorChange}
-                        required
-                        placeholder="Senior разработчик"
-                      />
-                    </label>
-                  </div>
-
-                  <label>
-                    Биография *
-                    <textarea
-                      name="bio"
-                      value={instructorForm.bio}
-                      onChange={handleInstructorChange}
-                      required
-                      rows={3}
-                      placeholder="Опыт работы, достижения..."
-                    />
-                  </label>
-
-                  <label>
-                    Фото преподавателя
-                    <input type="file" accept="image/*" onChange={handleInstructorPhotoChange} />
-                    {instructorPhotoPreview && (
-                      <div className="image-preview small">
-                        <img src={instructorPhotoPreview} alt="Preview" />
-                      </div>
-                    )}
-                  </label>
-
-                  <div className="social-links-section">
-                    <label>Социальные сети</label>
-                    {instructorForm.social.map((social, index) => (
-                      <div key={index} className="social-link-row">
-                        <select
-                          value={social.platform}
-                          onChange={(e) => handleSocialChange(index, 'platform', e.target.value)}
-                        >
-                          <option value="github">GitHub</option>
-                          <option value="linkedin">LinkedIn</option>
-                          <option value="twitter">Twitter</option>
-                          <option value="website">Website</option>
-                        </select>
-                        <input
-                          type="url"
-                          value={social.url}
-                          onChange={(e) => handleSocialChange(index, 'url', e.target.value)}
-                          placeholder="https://..."
-                        />
-                        {instructorForm.social.length > 1 && (
-                          <button
-                            type="button"
-                            className="btn btn-danger btn-sm"
-                            onClick={() => removeSocialLink(index)}
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button type="button" className="btn btn-outline btn-sm" onClick={addSocialLink}>
-                      + Добавить ссылку
-                    </button>
-                  </div>
-
-                  <div className="form-actions">
-                    <button type="submit" className="btn btn-primary" disabled={loading || !selectedCourse}>
-                      {loading ? 'Сохранение...' : 'Добавить преподавателя'}
-                    </button>
-                  </div>
-                </form>
-              </section>
-
-              {selectedCourse && instructors.length > 0 && (
-                <section className="admin-section">
-                  <h2>Преподаватели курса "{selectedCourse.title}"</h2>
-                  <div className="admin-list">
-                    {instructors.map((instructor) => (
-                      <div key={instructor.id} className="admin-list-item">
-                        <div className="admin-list-info">
-                          {instructor.photo && (
-                            <img src={instructor.photo} alt={instructor.name} className="admin-list-thumb" />
-                          )}
-                          <div>
-                            <p className="admin-list-title">{instructor.name}</p>
-                            <p className="admin-list-meta">
-                              <span>{instructor.position}</span>
-                            </p>
+              {!showInstructorForm ? (
+                <>
+                  <section className="admin-section">
+                    <div className="section-header">
+                      <h2>Все преподаватели ({allInstructors.length})</h2>
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => setShowInstructorForm(true)}
+                      >
+                        + Создать профиль преподавателя
+                      </button>
+                    </div>
+                    
+                    <div className="admin-list">
+                      {allInstructors.map((instructor) => (
+                        <div key={instructor.id} className="admin-list-item">
+                          <div className="admin-list-info">
+                            {instructor.photo && (
+                              <img src={instructor.photo} alt={instructor.name} className="admin-list-thumb" />
+                            )}
+                            <div>
+                              <p className="admin-list-title">{instructor.name}</p>
+                              <p className="admin-list-meta">
+                                <span>{instructor.position}</span>
+                              </p>
+                              {instructor.bio && (
+                                <p className="admin-list-description">{instructor.bio}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="admin-list-actions">
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              onClick={() => handleEditInstructor(instructor)}
+                            >
+                              Редактировать
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm" 
+                              onClick={() => handleDeleteInstructor(instructor.id)}
+                            >
+                              Удалить
+                            </button>
                           </div>
                         </div>
+                      ))}
+                      {allInstructors.length === 0 && (
+                        <p className="admin-empty">Преподавателей пока нет</p>
+                      )}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section className="admin-section">
+                    <h2>{editingInstructorId ? 'Редактирование преподавателя' : 'Создать профиль преподавателя'}</h2>
+                    
+                    {!editingInstructorId && (
+                      <div className="course-selector">
+                        <label>
+                          Добавить к курсу (опционально)
+                          <select
+                            value={selectedCourse?.id || ''}
+                            onChange={(e) => {
+                              const course = courses.find(c => c.id === parseInt(e.target.value));
+                              setSelectedCourse(course);
+                            }}
+                          >
+                            <option value="">-- Без курса --</option>
+                            {courses.map((course) => (
+                              <option key={course.id} value={course.id}>
+                                {course.title}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                       </div>
-                    ))}
-                  </div>
-                </section>
+                    )}
+
+                    <form className="admin-form" onSubmit={handleSubmitInstructor}>
+                      <div className="form-row">
+                        <label>
+                          Имя преподавателя *
+                          <input
+                            name="name"
+                            value={instructorForm.name}
+                            onChange={handleInstructorChange}
+                            required
+                            placeholder="Анна Серова"
+                          />
+                        </label>
+                        <label>
+                          Должность *
+                          <input
+                            name="position"
+                            value={instructorForm.position}
+                            onChange={handleInstructorChange}
+                            required
+                            placeholder="Senior разработчик"
+                          />
+                        </label>
+                      </div>
+
+                      <label>
+                        Биография *
+                        <textarea
+                          name="bio"
+                          value={instructorForm.bio}
+                          onChange={handleInstructorChange}
+                          required
+                          rows={3}
+                          placeholder="Опыт работы, достижения..."
+                        />
+                      </label>
+
+                      <label>
+                        Фото преподавателя
+                        <input type="file" accept="image/*" onChange={handleInstructorPhotoChange} />
+                        {instructorPhotoPreview && (
+                          <div className="image-preview small">
+                            <img src={instructorPhotoPreview} alt="Preview" />
+                          </div>
+                        )}
+                      </label>
+
+                      <div className="social-links-section">
+                        <label>Социальные сети</label>
+                        {instructorForm.social.map((social, index) => (
+                          <div key={index} className="social-link-row">
+                            <select
+                              value={social.icon}
+                              onChange={(e) => handleSocialChange(index, 'icon', e.target.value)}
+                            >
+                              <option value="github">GitHub</option>
+                              <option value="linkedin">LinkedIn</option>
+                              <option value="twitter">Twitter</option>
+                              <option value="website">Website</option>
+                            </select>
+                            <input
+                              type="url"
+                              value={social.url}
+                              onChange={(e) => handleSocialChange(index, 'url', e.target.value)}
+                              placeholder="https://..."
+                            />
+                            {instructorForm.social.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn btn-danger btn-sm"
+                                onClick={() => removeSocialLink(index)}
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button type="button" className="btn btn-outline btn-sm" onClick={addSocialLink}>
+                          + Добавить ссылку
+                        </button>
+                      </div>
+
+                      <div className="form-actions">
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                          {loading ? 'Сохранение...' : editingInstructorId ? 'Сохранить изменения' : 'Создать преподавателя'}
+                        </button>
+                        <button type="button" className="btn btn-outline" onClick={handleCancelInstructor}>
+                          Отмена
+                        </button>
+                      </div>
+                    </form>
+                  </section>
+                </>
               )}
             </>
           )}
