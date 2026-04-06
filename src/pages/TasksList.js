@@ -1,126 +1,142 @@
-import React, { useState, useEffect } from "react";
-import {
-  FaSearch,
-  FaSortAmountDown,
-  FaFilter,
-  FaStar,
-  FaRegStar,
-  FaCheckCircle,
-  FaRegCircle,
-} from "react-icons/fa";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getTasks,
-  getFavorites,
-  addFavorite,
-  removeFavorite,
-  getSolvedTasks,
-} from "../api";
+import { FaSearch, FaCode } from "react-icons/fa";
+import { getCodingTasks, getSubmissionsHistory } from "../api";
 import SimpleHeader from '../components/SimpleHeader';
-import styles from "./TaskList.module.css";
 
-function TaskCard({ task, onToggleFavorite }) {
-  const navigate = useNavigate();
-
-  const colors = {
-    Easy: "#2ea44f",
-    Medium: "#d29922",
-    Med: "#d29922",
-    Hard: "#cf222e",
-  };
-
-  const diff = task.difficulty || "Easy";
-  const diffColor = colors[diff] || "#57606a";
-
-  function handleClick(e) {
-    if (e.target.closest("button")) return;
-    navigate(`/tasks/${task.id}`);
-  }
+// Circular progress component
+function CircularProgress({ percent }) {
+  const radius = 7;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percent / 100) * circumference;
 
   return (
-    <div
-      className={styles.taskCard}
-      onClick={handleClick}
-      tabIndex={0}
-      role="link"
-      aria-label={`Открыть задачу ${task.title}`}
-    >
-      <div className={styles.taskStatusIcon}>
-        {task.isSolved ? (
-          <FaCheckCircle color="#2ea44f" />
-        ) : (
-          <FaRegCircle color="#57606a" />
-        )}
-      </div>
-      <div className={styles.taskNumber}>{task.number}.</div>
-      <div className={styles.taskTitle}>{task.title}</div>
-      <div className={styles.taskPercent}>{task.solvedPercent?.toFixed(1)}%</div>
-      <div className={styles.taskDifficulty} style={{ color: diffColor }}>
-        {diff === "Medium" ? "Med." : diff}
-      </div>
-      <div className={styles.taskProgressBar}>
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className={`${styles.progressSegment} ${
-              i < (task.progressLevel || 0) ? styles.progressSegmentFilled : ""
-            }`}
-          ></div>
-        ))}
-      </div>
-      <button
-        className={styles.taskFavoriteBtn}
-        aria-label={
-          task.isFavorite ? "Убрать из избранного" : "Добавить в избранное"
-        }
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleFavorite(task.id, task.isFavorite);
-        }}
-      >
-        {task.isFavorite ? (
-          <FaStar color="#ffbf00" />
-        ) : (
-          <FaRegStar color="#8b949e" />
-        )}
-      </button>
+    <div className="tasks-page__progress-circle">
+      <svg>
+        <circle
+          className="tasks-page__progress-circle-bg"
+          cx="10"
+          cy="10"
+          r={radius}
+        />
+        <circle
+          className="tasks-page__progress-circle-fill"
+          cx="10"
+          cy="10"
+          r={radius}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
     </div>
   );
 }
 
-export default function TaskList() {
+// Task card component
+function TaskCard({ task, onClick }) {
+  const difficultyMap = {
+    easy: { label: "Легко", class: "easy" },
+    medium: { label: "Средне", class: "medium" },
+    hard: { label: "Сложно", class: "hard" },
+  };
+
+  const difficulty = difficultyMap[task.difficulty] || { label: task.difficulty, class: "" };
+  const progress = task.isSolved ? 100 : 0;
+
+  return (
+    <div className="tasks-page__card" onClick={() => onClick(task.id)}>
+      <div className="tasks-page__card-image-wrapper">
+        {task.image ? (
+          <img src={task.image} alt={task.title} className="tasks-page__card-image" />
+        ) : (
+          <div className="tasks-page__card-image-placeholder">
+            <FaCode />
+          </div>
+        )}
+        <div className="tasks-page__card-badge">
+          <span>Задача #{task.number}</span>
+        </div>
+        {task.hasAchievement && (
+          <div className="tasks-page__card-badge tasks-page__card-badge--achievement">
+            <span>Баллы от «Другого Дела»</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6" fill="currentColor" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      <div className="tasks-page__card-content">
+        <div className="tasks-page__card-tags">
+          <span className={`tasks-page__card-tag tasks-page__card-tag--difficulty-${difficulty.class}`}>
+            {difficulty.label}
+          </span>
+          {task.tags?.slice(0, 2).map((tag, idx) => (
+            <span key={idx} className="tasks-page__card-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <h3 className="tasks-page__card-title">{task.title}</h3>
+
+        <p className="tasks-page__card-description">
+          {task.description || "Решите эту задачу по программированию"}
+        </p>
+
+        <div className="tasks-page__card-footer">
+          <CircularProgress percent={progress} />
+          <span className="tasks-page__progress-text">{progress}% пройдено</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function TasksList() {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
-  const [difficultyFilter, setDifficultyFilter] = useState("");
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [solvedTaskIds, setSolvedTaskIds] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const tasksData = await getTasks();
-        const favoritesData = await getFavorites();
-        const solvedTasksData = await getSolvedTasks();
-
-        const favoriteIds = new Set(favoritesData.map((f) => f.id));
-        const solvedIds = new Set(solvedTasksData.map((t) => t.id));
-        setSolvedTaskIds(solvedIds);
+        setLoading(true);
+        const tasksData = await getCodingTasks({ limit: 100 });
+        
+        // Получаем список решенных задач
+        let solvedIds = new Set();
+        try {
+          const submissions = await getSubmissionsHistory({ 
+            status: 'success',
+            limit: 1000 
+          });
+          solvedIds = new Set(submissions.map(s => s.coding_task_id));
+        } catch (err) {
+          console.warn('Не удалось загрузить историю решений:', err);
+        }
 
         const formatted = tasksData.map((t, idx) => ({
           id: t.id,
           number: idx + 1,
           title: t.title,
-          solvedPercent: t.solvedPercent || 0,
-          difficulty: t.difficulty || "Easy",
-          isFavorite: favoriteIds.has(t.id),
-          progressLevel: Math.floor(Math.random() * 7),
+          description: t.description,
+          difficulty: t.difficulty || "easy",
+          tags: t.tags || [],
           isSolved: solvedIds.has(t.id),
+          hasAchievement: false, // TODO: получать с бэкенда
+          image: null, // TODO: получать с бэкенда
         }));
 
         setTasks(formatted);
         setFilteredTasks(formatted);
       } catch (e) {
-        alert("Ошибка загрузки задач: " + e);
+        console.error("Ошибка загрузки задач:", e);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
@@ -129,10 +145,14 @@ export default function TaskList() {
   useEffect(() => {
     let filtered = tasks;
 
-    if (difficultyFilter) {
-      filtered = filtered.filter((t) => t.difficulty === difficultyFilter);
+    // Фильтр по вкладкам
+    if (activeTab === "in-progress") {
+      filtered = filtered.filter(t => !t.isSolved && t.hasProgress);
+    } else if (activeTab === "completed") {
+      filtered = filtered.filter(t => t.isSolved);
     }
 
+    // Поиск
     if (searchText.trim()) {
       filtered = filtered.filter((t) =>
         t.title.toLowerCase().includes(searchText.toLowerCase())
@@ -140,134 +160,97 @@ export default function TaskList() {
     }
 
     setFilteredTasks(filtered);
-  }, [difficultyFilter, searchText, tasks]);
+  }, [activeTab, searchText, tasks]);
 
-  async function toggleFavorite(id, currentlyFavorite) {
-    try {
-      if (currentlyFavorite) {
-        await removeFavorite(id);
-      } else {
-        await addFavorite(id);
-      }
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === id ? { ...t, isFavorite: !currentlyFavorite } : t
-        )
-      );
-    } catch (error) {
-      alert("Ошибка при обновлении избранного: " + error.message);
-    }
-  }
+  const handleCardClick = (taskId) => {
+    navigate(`/tasks/${taskId}`);
+  };
+
+  const allCount = tasks.length;
+  const inProgressCount = 0; // TODO: реализовать логику "в процессе"
+  const completedCount = tasks.filter(t => t.isSolved).length;
 
   return (
-    <div className={styles.pageWrapper}>
+    <div className="tasks-page">
       <SimpleHeader />
-      <nav className={styles.sidebar}>
-        <h2>Library</h2>
-        <ul>
-          <li>
-            <b>Library</b>
-          </li>
-          <li>Study Plan</li>
-          <li>Favorite</li>
-          <li>Session (Migrated)</li>
-          <li>to do</li>
-        </ul>
-      </nav>
+      
+      <div className="tasks-page__container">
+        <h1 className="tasks-page__title">Тренажер</h1>
 
-      <main className={styles.mainContent}>
-        <header className={styles.bannerRow}>
-          <div className={`${styles.banner} ${styles.bannerGreen}`}>
-            <div>
-              <h3>LeetCode's Interview Crash Course:</h3>
-              <p>System Design for Interviews and Beyond</p>
-              <button className={styles.btnPrimary}>Start Learning</button>
+        {/* Search and filters */}
+        <div className="tasks-page__filters">
+          <div className="tasks-page__search-row">
+            <div className="tasks-page__search-wrapper">
+              <FaSearch className="tasks-page__search-icon" />
+              <input
+                type="search"
+                className="tasks-page__search-input"
+                placeholder="Поиск"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
             </div>
-          </div>
-          <div className={`${styles.banner} ${styles.bannerPurple}`}>
-            <div>
-              <h3>LeetCode's Interview Crash Course:</h3>
-              <p>Data Structures and Algorithms</p>
-              <button className={styles.btnSecondary}>Start Learning</button>
-            </div>
-          </div>
-          <div className={`${styles.banner} ${styles.bannerBlue}`}>
-            <div>
-              <h3>Top Interview Questions</h3>
-              <button className={styles.btnTertiary}>Get Started</button>
-            </div>
-          </div>
-        </header>
-
-        <section className={styles.topicsRow} aria-label="Темы задач">
-          {[
-            "Array",
-            "String",
-            "Hash Table",
-            "Dynamic Programming",
-            "Math",
-            "Sorting",
-            "Greedy",
-          ].map((topic) => (
-            <button key={topic} className={styles.topicBtn}>
-              {topic}{" "}
-              <span className={styles.topicCount}>
-                {Math.floor(Math.random() * 2000)}
-              </span>
+            
+            <button className="tasks-page__dropdown">
+              <span>Сортировка</span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.6875 8.78514L13.5494 12.6187C13.8098 12.8771 14.2319 12.8771 14.4922 12.6187C14.7526 12.3602 14.7526 11.9412 14.4922 11.6828L10.1589 7.38133C9.89855 7.12289 9.47644 7.12289 9.21609 7.38133L4.88276 11.6828C4.62241 11.9412 4.62241 12.3602 4.88276 12.6187C5.14311 12.8771 5.56522 12.8771 5.82557 12.6187L9.6875 8.78514Z" />
+              </svg>
             </button>
-          ))}
-        </section>
 
-        <section className={styles.filterButtons} aria-label="Фильтры по темам">
-          <button className={`${styles.filterBtn} ${styles.filterBtnActive}`}>
-            All Topics
-          </button>
-          <button className={styles.filterBtn}>Algorithms</button>
-          <button className={styles.filterBtn}>Database</button>
-          <button className={styles.filterBtn}>Shell</button>
-          <button className={styles.filterBtn}>Concurrency</button>
-          <button className={styles.filterBtn}>JavaScript</button>
-          <button className={styles.filterBtn}>
-            <FaFilter />
-          </button>
-        </section>
-
-        <section className={styles.searchSortBar}>
-          <div className={styles.searchInputWrapper}>
-            <FaSearch className={styles.searchIcon} />
-            <input
-              type="search"
-              placeholder="Search questions"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              aria-label="Поиск задач"
-            />
+            <button className="tasks-page__dropdown">
+              <span>Фильтры</span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.6875 8.78514L13.5494 12.6187C13.8098 12.8771 14.2319 12.8771 14.4922 12.6187C14.7526 12.3602 14.7526 11.9412 14.4922 11.6828L10.1589 7.38133C9.89855 7.12289 9.47644 7.12289 9.21609 7.38133L4.88276 11.6828C4.62241 11.9412 4.62241 12.3602 4.88276 12.6187C5.14311 12.8771 5.56522 12.8771 5.82557 12.6187L9.6875 8.78514Z" />
+              </svg>
+            </button>
           </div>
-          <button className={styles.btnIcon} title="Sort">
-            <FaSortAmountDown />
-          </button>
-          <button className={styles.btnIcon} title="Filter">
-            <FaFilter />
-          </button>
-          <div className={styles.solvedCount}>
-            {filteredTasks.filter((t) => t.isSolved).length} / {tasks.length} Solved
-          </div>
-        </section>
 
-        <section className={styles.tasksList} aria-label="Список задач">
-          {filteredTasks.length === 0 ? (
-            <p className={styles.noTasks}>Задачи не найдены</p>
-          ) : (
-            filteredTasks.map((task) => (
+          {/* Tabs */}
+          <div className="tasks-page__tabs">
+            <button
+              className={`tasks-page__tab ${activeTab === "all" ? "tasks-page__tab--active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
+              <span>Все подборки</span>
+              <div className="tasks-page__tab-badge">{allCount}</div>
+            </button>
+
+            <button
+              className={`tasks-page__tab ${activeTab === "in-progress" ? "tasks-page__tab--active" : ""}`}
+              onClick={() => setActiveTab("in-progress")}
+            >
+              <span>В процессе</span>
+              <div className="tasks-page__tab-badge">{inProgressCount}</div>
+            </button>
+
+            <button
+              className={`tasks-page__tab ${activeTab === "completed" ? "tasks-page__tab--active" : ""}`}
+              onClick={() => setActiveTab("completed")}
+            >
+              <span>Пройденные</span>
+              <div className="tasks-page__tab-badge">{completedCount}</div>
+            </button>
+          </div>
+        </div>
+
+        {/* Cards grid */}
+        {loading ? (
+          <div className="tasks-page__loading">Загрузка задач...</div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="tasks-page__empty">Задачи не найдены</div>
+        ) : (
+          <div className="tasks-page__grid">
+            {filteredTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
-                onToggleFavorite={toggleFavorite}
+                onClick={handleCardClick}
               />
-            ))
-          )}
-        </section>
-      </main>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Home from './pages/Home';
 import CoursePage from './pages/CoursePage';
@@ -24,11 +24,7 @@ function App() {
       <NotificationProvider>
         <UserProvider>
           <Routes>
-            {/* Если хочешь, чтобы / сразу вело на задачи, оставь это */}
             <Route path="/" element={<Home />} />
-
-            {/* Или, если нужна главная страница Home, замени строку выше на эту */}
-            {/* <Route path="/" element={<Home />} /> */}
 
             <Route path="/courses/:courseSlug" element={<CoursePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -61,9 +57,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-

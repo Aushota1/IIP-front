@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { getTaskById, runTaskCode, getTaskLeaderboard, isTaskSolved } from "../api";
-import SimpleHeader from '../components/SimpleHeader';
+import { getCodingTaskById, getTestCases, testCode, submitCode, getSubmissionsHistory } from "../api";
 
 import {
   ResponsiveContainer,
@@ -193,20 +192,33 @@ export default function TaskDetail() {
 
   const textareaRef = useRef(null);
 
-  // Функция загрузки лидерборда с учётом токена
-  async function fetchLeaderboard(taskId) {
+  // Функция загрузки истории решений
+  async function fetchSubmissionsHistory(taskId) {
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
-      const lb = await getTaskLeaderboard(taskId, token);
-      if (lb && lb.leaderboard) {
-        const sorted = lb.leaderboard
-          .filter((e) => e.best_runtime != null)
-          .sort((a, b) => a.best_runtime - b.best_runtime);
+      const submissions = await getSubmissionsHistory({ 
+        coding_task_id: taskId,
+        status: 'success',
+        limit: 10 
+      });
+      
+      if (submissions && submissions.length > 0) {
+        // Преобразуем в формат лидерборда
+        const leaderboardData = submissions.map((sub, idx) => ({
+          user_id: sub.user_id,
+          user_name: sub.username || `User ${idx + 1}`, // используем username из БД
+          avatar_url: sub.avatar_url || null,
+          best_runtime: sub.execution_time_ms / 1000, // конвертируем в секунды
+          best_memory: sub.memory_used_mb,
+          total_submissions: 1,
+        }));
+        
+        const sorted = leaderboardData.sort((a, b) => a.best_runtime - b.best_runtime);
         setLeaderboard(sorted);
       } else {
         setLeaderboard([]);
       }
-    } catch {
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
       setLeaderboard([]);
     }
   }
@@ -223,36 +235,41 @@ export default function TaskDetail() {
       setIsSolved(false);
 
       try {
-        const data = await getTaskById(taskId);
+        // Загружаем задачу
+        const data = await getCodingTaskById(taskId);
         setTask(data);
 
+        // Загружаем тестовые случаи (только публичные)
+        const testCases = await getTestCases(taskId, false);
+        
+        // Проверяем, решена ли задача (по истории решений)
         let solved = false;
         try {
-          const token = localStorage.getItem("token") || localStorage.getItem("authToken");
-          if (token) {
-            const solvedData = await isTaskSolved(taskId, token);
-            solved = solvedData.solved;
-          }
-        } catch {}
+          const submissions = await getSubmissionsHistory({ 
+            coding_task_id: taskId,
+            status: 'success',
+            limit: 1 
+          });
+          solved = submissions && submissions.length > 0;
+        } catch (err) {
+          console.error('Error checking solved status:', err);
+        }
 
         setIsSolved(solved);
 
         if (solved) {
           setActiveTab("accepted");
-          await fetchLeaderboard(taskId);
+          await fetchSubmissionsHistory(taskId);
         }
 
-        let args = "";
-        if (data.tests?.length) {
-          const firstTest = data.tests.find((t) => t.is_active);
-          if (firstTest) {
-            try {
-              args = Object.keys(JSON.parse(firstTest.input_data)).join(", ");
-            } catch {}
-          }
-        }
-        setCodeWithHeader(`def ${data.function_name}(${args}):\n    `);
+        // Устанавливаем начальный код с сигнатурой функции
+        const signature = data.function_signature || "def solution():\n    ";
+        setCodeWithHeader(signature + "pass");
+        
+        // Сохраняем тесты в task
+        setTask(prev => ({ ...prev, tests: testCases }));
       } catch (e) {
+        console.error('Error loading task:', e);
         setError("Задача не найдена: " + e.message);
       }
     }
@@ -342,16 +359,45 @@ export default function TaskDetail() {
     setResults(null);
 
     try {
-      const body = codeWithHeader
-        .split("\n")
-        .slice(1)
-        .map((line) => (line.startsWith("    ") ? line.slice(4) : line))
-        .join("\n");
-      if (!body.trim()) throw new Error("Тело функции не должно быть пустым.");
-      const data = await runTaskCode(taskId, body);
-      setResults(data);
+      const code = codeWithHeader.trim();
+      if (!code) throw new Error("Код не должен быть пустым.");
+      
+      // Формируем JSON для отправки
+      const requestData = {
+        coding_task_id: taskId,
+        language: 'python',
+        code: code,
+      };
+      
+      // Скачиваем JSON
+      const blob = new Blob([JSON.stringify(requestData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `task_${taskId}_test_request.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Отправляем код на тестирование (только публичные тесты, без сохранения)
+      const data = await testCode(requestData);
+      
+      // Преобразуем результат в формат для отображения
+      const formattedResults = {
+        success: data.status === 'success',
+        results: data.test_results?.map(tr => ({
+          passed: tr.passed,
+          output: tr.actual,
+          expected: tr.expected,
+          error: tr.error,
+        })) || [],
+      };
+      
+      setResults(formattedResults);
       setActiveTestIndex(0);
     } catch (e) {
+      console.error('Error running code:', e);
       setError("Ошибка выполнения: " + e.message);
     } finally {
       setLoading(false);
@@ -365,22 +411,37 @@ export default function TaskDetail() {
     setResults(null);
 
     try {
-      const body = codeWithHeader
-        .split("\n")
-        .slice(1)
-        .map((line) => (line.startsWith("    ") ? line.slice(4) : line))
-        .join("\n");
-      if (!body.trim()) throw new Error("Тело функции не должно быть пустым.");
-      const data = await runTaskCode(taskId, body);
-      setResults(data);
+      const code = codeWithHeader.trim();
+      if (!code) throw new Error("Код не должен быть пустым.");
+      
+      // Отправляем код на проверку (все тесты, включая скрытые)
+      const data = await submitCode({
+        coding_task_id: taskId,
+        language: 'python',
+        code: code,
+      });
+      
+      // Преобразуем результат в формат для отображения
+      const formattedResults = {
+        success: data.status === 'success',
+        results: data.test_results?.map(tr => ({
+          passed: tr.passed,
+          output: tr.actual,
+          expected: tr.expected,
+          error: tr.error,
+        })) || [],
+      };
+      
+      setResults(formattedResults);
       setActiveTestIndex(0);
 
-      if (data.success) {
+      if (data.status === 'success') {
         setIsSolved(true);
         setActiveTab("accepted");
-        await fetchLeaderboard(taskId);
+        await fetchSubmissionsHistory(taskId);
       }
     } catch (e) {
+      console.error('Error submitting code:', e);
       setError("Ошибка выполнения: " + e.message);
     } finally {
       setLoading(false);
@@ -411,11 +472,10 @@ export default function TaskDetail() {
     { id: "submissions", title: "Submissions" },
   ];
 
-  const activeTests = task.tests?.filter((t) => t.is_active) || [];
+  const activeTests = task.tests?.filter((t) => !t.is_hidden) || [];
 
   return (
     <div style={styles.container}>
-      <SimpleHeader />
       <Tabs tabs={tabs} current={activeTab} onChange={setActiveTab} />
 
       <div style={styles.contentArea}>
@@ -423,10 +483,7 @@ export default function TaskDetail() {
           {activeTab === "description" && (
             <>
               <h1 style={styles.title}>
-                {task.id}. {task.title}
-                <span style={{ ...styles.status, color: isSolved ? "#0e8f55" : "#f44747" }}>
-                  {isSolved ? "Solved ✔️" : "Unsolved"}
-                </span>
+                {task.title}
               </h1>
               <div style={styles.tags}>
                 <span style={{ ...styles.tag, backgroundColor: "#0e8f55" }}>Easy</span>
@@ -470,7 +527,7 @@ export default function TaskDetail() {
                     <tbody>
                       {leaderboard.map((entry, i) => (
                         <tr
-                          key={entry.user_id}
+                          key={`${entry.user_id}-${i}`}
                           style={{ cursor: "pointer" }}
                           tabIndex={0}
                           aria-label={`Rank ${i + 1}, User ${entry.user_name}, Runtime ${
@@ -632,31 +689,105 @@ export default function TaskDetail() {
 
           {activeTests.length > 0 && (
             <div style={{ marginTop: 24 }}>
-              <div style={{ marginBottom: 8, fontWeight: "700", color: "#61dafb" }}>
-                Active Tests
+              <div style={{ marginBottom: 12, fontWeight: "700", color: "#61dafb", fontSize: 18 }}>
+                Tests
               </div>
-              <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-                {activeTests.map((test, i) => (
-                  <button
-                    key={test.id}
-                    onClick={() => setActiveTestIndex(i)}
-                    style={{
-                      padding: "8px 12px",
-                      backgroundColor: activeTestIndex === i ? "#007acc" : "#1e1e1e",
-                      color: activeTestIndex === i ? "#fff" : "#9cdcfe",
-                      border: "none",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      userSelect: "none",
-                      boxShadow: activeTestIndex === i ? "0 0 12px #007accbb" : "none",
-                      whiteSpace: "nowrap",
-                    }}
-                    aria-selected={activeTestIndex === i}
-                    role="tab"
-                  >
-                    Case {i + 1}
-                  </button>
-                ))}
+              <div style={{ 
+                backgroundColor: "#252526", 
+                borderRadius: 12, 
+                overflow: "hidden",
+                border: "1px solid #007acc"
+              }}>
+                <table style={{ 
+                  width: "100%", 
+                  borderCollapse: "collapse",
+                  fontFamily: "'Fira Code', monospace",
+                  fontSize: 14
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#007acc" }}>
+                      <th style={{ 
+                        padding: "12px 16px", 
+                        textAlign: "left", 
+                        color: "#fff",
+                        fontWeight: "700",
+                        width: "50%"
+                      }}>
+                        Input
+                      </th>
+                      <th style={{ 
+                        padding: "12px 16px", 
+                        textAlign: "left", 
+                        color: "#fff",
+                        fontWeight: "700",
+                        width: "50%"
+                      }}>
+                        Expected Output
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeTests.map((test, i) => (
+                      <tr 
+                        key={i}
+                        style={{ 
+                          borderBottom: i < activeTests.length - 1 ? "1px solid #333" : "none",
+                          cursor: "pointer",
+                          backgroundColor: activeTestIndex === i ? "rgba(0, 122, 204, 0.2)" : "transparent",
+                          transition: "background-color 0.2s ease"
+                        }}
+                        onClick={() => setActiveTestIndex(i)}
+                        onMouseEnter={(e) => {
+                          if (activeTestIndex !== i) {
+                            e.currentTarget.style.backgroundColor = "rgba(0, 122, 204, 0.1)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (activeTestIndex !== i) {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                          }
+                        }}
+                      >
+                        <td style={{ 
+                          padding: "12px 16px", 
+                          color: "#d4d4d4",
+                          fontFamily: "'Fira Code', monospace"
+                        }}>
+                          <code style={{ 
+                            backgroundColor: "#1e1e1e", 
+                            padding: "4px 8px", 
+                            borderRadius: 4,
+                            display: "inline-block",
+                            maxWidth: "100%",
+                            overflow: "auto"
+                          }}>
+                            {typeof test.input_data === 'string' 
+                              ? test.input_data 
+                              : JSON.stringify(test.input_data)}
+                          </code>
+                        </td>
+                        <td style={{ 
+                          padding: "12px 16px", 
+                          color: "#d4d4d4",
+                          fontFamily: "'Fira Code', monospace"
+                        }}>
+                          <code style={{ 
+                            backgroundColor: "#1e1e1e", 
+                            padding: "4px 8px", 
+                            borderRadius: 4,
+                            display: "inline-block",
+                            maxWidth: "100%",
+                            overflow: "auto"
+                          }}>
+                            {typeof test.expected_output === 'string' 
+                              ? test.expected_output 
+                              : JSON.stringify(test.expected_output)}
+                          </code>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

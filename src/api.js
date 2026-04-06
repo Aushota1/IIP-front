@@ -371,3 +371,89 @@ export const getTaskLeaderboard = async (taskId, token) => {
   });
   return response.data; // Ожидается объект с таблицей лидеров
 };
+
+// === Coding Tasks API ===
+
+// Получить список задач по программированию
+export const getCodingTasks = async (params = {}) => {
+  const response = await api.get('/coding-tasks', { params });
+  return response.data;
+};
+
+// Получить задачу по программированию по ID
+export const getCodingTaskById = async (taskId) => {
+  const response = await api.get(`/coding-tasks/${taskId}`);
+  return response.data;
+};
+
+// Создать задачу по программированию (admin)
+export const createCodingTask = async (taskData) => {
+  const response = await api.post('/coding-tasks', taskData);
+  return response.data;
+};
+
+// Обновить задачу по программированию (admin)
+export const updateCodingTask = async (taskId, taskData) => {
+  const response = await api.patch(`/coding-tasks/${taskId}`, taskData);
+  return response.data;
+};
+
+// Удалить задачу по программированию (admin)
+export const deleteCodingTask = async (taskId) => {
+  const response = await api.delete(`/coding-tasks/${taskId}`);
+  return response.data;
+};
+
+// === Test Cases API ===
+
+// Получить тестовые случаи задачи
+export const getTestCases = async (taskId, includeHidden = false) => {
+  const response = await api.get(`/coding-tasks/${taskId}/test-cases`, {
+    params: { include_hidden: includeHidden }
+  });
+  return response.data;
+};
+
+// Добавить тестовый случай (admin)
+export const createTestCase = async (taskId, testCaseData) => {
+  const response = await api.post(`/coding-tasks/${taskId}/test-cases`, testCaseData);
+  return response.data;
+};
+
+// Обновить тестовый случай (admin)
+export const updateTestCase = async (testCaseId, testCaseData) => {
+  const response = await api.patch(`/coding-test-cases/${testCaseId}`, testCaseData);
+  return response.data;
+};
+
+// Удалить тестовый случай (admin)
+export const deleteTestCase = async (testCaseId) => {
+  const response = await api.delete(`/coding-test-cases/${testCaseId}`);
+  return response.data;
+};
+
+// === Code Submissions API ===
+
+// Тестировать код на открытых тестах (без сохранения в БД)
+export const testCode = async (testData) => {
+  const response = await api.post('/code-submissions/test', testData);
+  return response.data;
+};
+
+// Отправить решение задачи (все тесты, с сохранением в БД)
+export const submitCode = async (submissionData) => {
+  const response = await api.post('/code-submissions', submissionData);
+  return response.data;
+};
+
+// Получить результат решения
+export const getSubmissionResult = async (submissionId) => {
+  const response = await api.get(`/code-submissions/${submissionId}`);
+  return response.data;
+};
+
+// Получить историю решений
+export const getSubmissionsHistory = async (params = {}) => {
+  const response = await api.get('/code-submissions', { params });
+  return response.data;
+};

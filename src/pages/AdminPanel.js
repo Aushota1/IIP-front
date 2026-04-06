@@ -10,6 +10,11 @@ import {
   addInstructorToCourse,
   updateInstructor,
   deleteInstructor,
+  createCodingTask,
+  createTestCase,
+  getCodingTasks,
+  updateCodingTask,
+  deleteCodingTask,
 } from '../api';
 import Sidebar from '../components/Sidebar';
 import CurriculumBuilder from '../components/CurriculumBuilder';
@@ -35,10 +40,30 @@ const EMPTY_INSTRUCTOR_FORM = {
   social: [{ icon: 'github', url: '' }],
 };
 
+const EMPTY_TASK_FORM = {
+  title: '',
+  description: '',
+  difficulty: 'easy',
+  time_limit_ms: 5000,
+  memory_limit_mb: 128,
+  allowed_languages: ['python'],
+  function_signature: 'def solution():',
+  hints: [],
+  tags: [],
+};
+
+const EMPTY_TEST_CASE = {
+  input_data: '',
+  expected_output: '',
+  is_hidden: false,
+  weight: 1,
+  description: '',
+};
+
 
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('courses'); // courses, instructors, curriculum
+  const [activeTab, setActiveTab] = useState('courses'); // courses, instructors, curriculum, tasks
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   
@@ -55,12 +80,20 @@ const AdminPanel = () => {
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [editingInstructorId, setEditingInstructorId] = useState(null);
   
+  // Task form
+  const [taskForm, setTaskForm] = useState(EMPTY_TASK_FORM);
+  const [testCases, setTestCases] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     loadCourses();
     loadAllInstructors();
+    loadTasks();
   }, []);
 
   useEffect(() => {
@@ -98,6 +131,15 @@ const AdminPanel = () => {
       setAllInstructors(data);
     } catch (err) {
       console.error('Failed to load all instructors:', err);
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const data = await getCodingTasks({ limit: 100 });
+      setTasks(data);
+    } catch (err) {
+      console.error('Failed to load tasks:', err);
     }
   };
 
@@ -305,6 +347,157 @@ const AdminPanel = () => {
     setMessage(null);
   };
 
+  // ========== TASK HANDLERS ==========
+  const handleTaskChange = (e) => {
+    const { name, value } = e.target;
+    setTaskForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddHint = () => {
+    setTaskForm((prev) => ({
+      ...prev,
+      hints: [...prev.hints, { text: '' }],
+    }));
+  };
+
+  const handleRemoveHint = (index) => {
+    setTaskForm((prev) => ({
+      ...prev,
+      hints: prev.hints.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleHintChange = (index, value) => {
+    const newHints = [...taskForm.hints];
+    newHints[index] = { text: value };
+    setTaskForm((prev) => ({ ...prev, hints: newHints }));
+  };
+
+  const handleTagsChange = (e) => {
+    const tags = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
+    setTaskForm((prev) => ({ ...prev, tags }));
+  };
+
+  const handleAddTestCase = () => {
+    setTestCases((prev) => [...prev, { ...EMPTY_TEST_CASE }]);
+  };
+
+  const handleRemoveTestCase = (index) => {
+    setTestCases((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTestCaseChange = (index, field, value) => {
+    const newTestCases = [...testCases];
+    if (field === 'is_hidden') {
+      newTestCases[index][field] = value === 'true';
+    } else if (field === 'weight') {
+      newTestCases[index][field] = parseInt(value) || 1;
+    } else {
+      newTestCases[index][field] = value;
+    }
+    setTestCases(newTestCases);
+  };
+
+  const handleSubmitTask = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    
+    try {
+      // Создать или обновить задачу
+      const taskData = {
+        ...taskForm,
+        hints: taskForm.hints.filter(h => h.text.trim()),
+      };
+
+      let taskId;
+      if (editingTaskId) {
+        await updateCodingTask(editingTaskId, taskData);
+        taskId = editingTaskId;
+        setMessage({ type: 'success', text: 'Задача обновлена' });
+      } else {
+        const newTask = await createCodingTask(taskData);
+        taskId = newTask.id;
+        
+        // Добавить тестовые случаи
+        for (const testCase of testCases) {
+          if (testCase.input_data && testCase.expected_output) {
+            try {
+              const parsedInput = JSON.parse(`[${testCase.input_data}]`);
+              const parsedOutput = JSON.parse(testCase.expected_output);
+              
+              await createTestCase(taskId, {
+                input_data: parsedInput,
+                expected_output: parsedOutput,
+                is_hidden: testCase.is_hidden,
+                weight: testCase.weight,
+                description: testCase.description,
+              });
+            } catch (err) {
+              console.error('Failed to parse test case:', err);
+            }
+          }
+        }
+        
+        setMessage({ type: 'success', text: 'Задача создана' });
+      }
+
+      setTaskForm(EMPTY_TASK_FORM);
+      setTestCases([]);
+      setShowTaskForm(false);
+      setEditingTaskId(null);
+      await loadTasks();
+    } catch (err) {
+      setMessage({ type: 'error', text: `Ошибка: ${err.message || err}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTaskId(task.id);
+    setTaskForm({
+      title: task.title || '',
+      description: task.description || '',
+      difficulty: task.difficulty || 'easy',
+      time_limit_ms: task.time_limit_ms || 5000,
+      memory_limit_mb: task.memory_limit_mb || 128,
+      allowed_languages: task.allowed_languages || ['python'],
+      function_signature: task.function_signature || 'def solution():',
+      hints: task.hints || [],
+      tags: task.tags || [],
+    });
+    setTestCases([]);
+    setShowTaskForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эту задачу?')) {
+      return;
+    }
+    
+    setLoading(true);
+    setMessage(null);
+    try {
+      await deleteCodingTask(taskId);
+      setMessage({ type: 'success', text: 'Задача удалена' });
+      await loadTasks();
+    } catch (err) {
+      setMessage({ type: 'error', text: `Ошибка: ${err.message || err}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelTask = () => {
+    setShowTaskForm(false);
+    setEditingTaskId(null);
+    setTaskForm(EMPTY_TASK_FORM);
+    setTestCases([]);
+    setMessage(null);
+  };
+
 
 
   return (
@@ -342,6 +535,12 @@ const AdminPanel = () => {
               onClick={() => setActiveTab('curriculum')}
             >
               📋 Программа Курса
+            </button>
+            <button
+              className={`admin-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tasks')}
+            >
+              💻 Задачи
             </button>
           </div>
 
@@ -682,6 +881,281 @@ const AdminPanel = () => {
                 <CurriculumBuilder />
               </section>
             </CurriculumProvider>
+          )}
+
+          {/* TASKS TAB */}
+          {activeTab === 'tasks' && (
+            <>
+              {!showTaskForm ? (
+                <>
+                  <section className="admin-section">
+                    <div className="section-header">
+                      <h2>Все задачи ({tasks.length})</h2>
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => setShowTaskForm(true)}
+                      >
+                        + Создать задачу
+                      </button>
+                    </div>
+                    
+                    <div className="admin-list">
+                      {tasks.map((task) => (
+                        <div key={task.id} className="admin-list-item">
+                          <div className="admin-list-info">
+                            <div>
+                              <p className="admin-list-title">{task.title}</p>
+                              <p className="admin-list-meta">
+                                <span className={`level-badge ${task.difficulty}`}>
+                                  {task.difficulty}
+                                </span>
+                                {task.tags?.map((tag, idx) => (
+                                  <span key={idx} className="tag-badge">{tag}</span>
+                                ))}
+                              </p>
+                              {task.description && (
+                                <p className="admin-list-description">
+                                  {task.description.substring(0, 100)}...
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="admin-list-actions">
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              onClick={() => handleEditTask(task)}
+                            >
+                              Редактировать
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm" 
+                              onClick={() => handleDeleteTask(task.id)}
+                            >
+                              Удалить
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {tasks.length === 0 && (
+                        <p className="admin-empty">Задач пока нет</p>
+                      )}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section className="admin-section">
+                    <h2>{editingTaskId ? 'Редактирование задачи' : 'Создать задачу'}</h2>
+                    
+                    <form className="admin-form" onSubmit={handleSubmitTask}>
+                      <label>
+                        Название задачи *
+                        <input
+                          name="title"
+                          value={taskForm.title}
+                          onChange={handleTaskChange}
+                          required
+                          placeholder="Сумма двух чисел"
+                        />
+                      </label>
+
+                      <div className="form-row">
+                        <label>
+                          Сложность *
+                          <select 
+                            name="difficulty" 
+                            value={taskForm.difficulty} 
+                            onChange={handleTaskChange}
+                          >
+                            <option value="easy">Легко</option>
+                            <option value="medium">Средне</option>
+                            <option value="hard">Сложно</option>
+                          </select>
+                        </label>
+                        <label>
+                          Лимит времени (мс) *
+                          <input
+                            type="number"
+                            name="time_limit_ms"
+                            value={taskForm.time_limit_ms}
+                            onChange={handleTaskChange}
+                            required
+                            min="1000"
+                            max="30000"
+                          />
+                        </label>
+                        <label>
+                          Лимит памяти (МБ) *
+                          <input
+                            type="number"
+                            name="memory_limit_mb"
+                            value={taskForm.memory_limit_mb}
+                            onChange={handleTaskChange}
+                            required
+                            min="64"
+                            max="512"
+                          />
+                        </label>
+                      </div>
+
+                      <label>
+                        Описание задачи *
+                        <textarea
+                          name="description"
+                          value={taskForm.description}
+                          onChange={handleTaskChange}
+                          required
+                          rows={6}
+                          placeholder="Напишите функцию solution(a, b), которая возвращает сумму двух чисел..."
+                        />
+                      </label>
+
+                      <label>
+                        Сигнатура функции *
+                        <input
+                          name="function_signature"
+                          value={taskForm.function_signature}
+                          onChange={handleTaskChange}
+                          required
+                          placeholder="def solution(a: int, b: int) -> int:"
+                        />
+                        <small>Пример: def solution(a: int, b: int) -&gt; int:</small>
+                      </label>
+
+                      <label>
+                        Теги (через запятую)
+                        <input
+                          name="tags"
+                          value={taskForm.tags.join(', ')}
+                          onChange={handleTagsChange}
+                          placeholder="math, beginner, arrays"
+                        />
+                      </label>
+
+                      {/* Hints */}
+                      <div className="hints-section">
+                        <label>Подсказки</label>
+                        {taskForm.hints.map((hint, index) => (
+                          <div key={index} className="hint-row">
+                            <input
+                              type="text"
+                              value={hint.text}
+                              onChange={(e) => handleHintChange(index, e.target.value)}
+                              placeholder="Используйте оператор +"
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleRemoveHint(index)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                        <button 
+                          type="button" 
+                          className="btn btn-outline btn-sm" 
+                          onClick={handleAddHint}
+                        >
+                          + Добавить подсказку
+                        </button>
+                      </div>
+
+                      {/* Test Cases */}
+                      {!editingTaskId && (
+                        <div className="test-cases-section">
+                          <label>Тестовые случаи</label>
+                          {testCases.map((testCase, index) => (
+                            <div key={index} className="test-case-card">
+                              <div className="test-case-header">
+                                <h4>Тест #{index + 1}</h4>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm"
+                                  onClick={() => handleRemoveTestCase(index)}
+                                >
+                                  Удалить
+                                </button>
+                              </div>
+                              
+                              <div className="form-row">
+                                <label>
+                                  Входные данные (JSON) *
+                                  <input
+                                    value={testCase.input_data}
+                                    onChange={(e) => handleTestCaseChange(index, 'input_data', e.target.value)}
+                                    placeholder="2, 3"
+                                    required
+                                  />
+                                  <small>Пример: 2, 3 или [1, 2, 3]</small>
+                                </label>
+                                <label>
+                                  Ожидаемый результат (JSON) *
+                                  <input
+                                    value={testCase.expected_output}
+                                    onChange={(e) => handleTestCaseChange(index, 'expected_output', e.target.value)}
+                                    placeholder="5"
+                                    required
+                                  />
+                                  <small>Пример: 5 или [1, 2]</small>
+                                </label>
+                              </div>
+
+                              <div className="form-row">
+                                <label>
+                                  Описание
+                                  <input
+                                    value={testCase.description}
+                                    onChange={(e) => handleTestCaseChange(index, 'description', e.target.value)}
+                                    placeholder="Простой случай"
+                                  />
+                                </label>
+                                <label>
+                                  Вес
+                                  <input
+                                    type="number"
+                                    value={testCase.weight}
+                                    onChange={(e) => handleTestCaseChange(index, 'weight', e.target.value)}
+                                    min="1"
+                                    max="10"
+                                  />
+                                </label>
+                                <label>
+                                  Скрытый тест
+                                  <select
+                                    value={testCase.is_hidden.toString()}
+                                    onChange={(e) => handleTestCaseChange(index, 'is_hidden', e.target.value)}
+                                  >
+                                    <option value="false">Нет</option>
+                                    <option value="true">Да</option>
+                                  </select>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                          <button 
+                            type="button" 
+                            className="btn btn-outline btn-sm" 
+                            onClick={handleAddTestCase}
+                          >
+                            + Добавить тестовый случай
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="form-actions">
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                          {loading ? 'Сохранение...' : editingTaskId ? 'Сохранить изменения' : 'Создать задачу'}
+                        </button>
+                        <button type="button" className="btn btn-outline" onClick={handleCancelTask}>
+                          Отмена
+                        </button>
+                      </div>
+                    </form>
+                  </section>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
